@@ -1,0 +1,22 @@
+{
+  "name": "backend",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "eval": "bun run scripts/eval.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "dotenv": "^18.0.4",
+    "drizzle-kit": "^0.31.11"
+  },
+  "peerDependencies": {
+    "typescript": "^7"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.3",
+    "postgres": "^3.4.9"
+  }
+}
