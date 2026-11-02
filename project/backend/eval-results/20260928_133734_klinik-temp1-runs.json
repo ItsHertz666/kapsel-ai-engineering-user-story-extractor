@@ -1,0 +1,1856 @@
+[
+  {
+    "runIndex": 1,
+    "newTranscriptId": 36,
+    "status": "completed",
+    "durationMs": 34176,
+    "model": "openai/gpt-oss-120b",
+    "temperature": 1,
+    "errorMessage": null,
+    "storyCount": 8,
+    "acCountPerStory": [
+      2,
+      3,
+      1,
+      2,
+      1,
+      1,
+      1,
+      1
+    ],
+    "zeroAcStoryCount": 0,
+    "hasTemplatePrefix": false,
+    "templatePrefixStoriesCount": 0,
+    "scopeLeakWords": [],
+    "scopeLeakLocations": [],
+    "hasScopeLeak": false,
+    "detailsDetectedWords": [
+      "tombol",
+      "formulir",
+      "halaman"
+    ],
+    "detailsCountAC": 6,
+    "roleFeatureList": [
+      "pasien: mengambil nomor antrian via aplikasi mobile pada hari H mulai jam 6 pagi",
+      "pasien: mengisi keluhan wajib maksimal 200 karakter saat mengambil nomor antrian",
+      "dokter: melihat daftar pasien hari ini beserta keluhan yang diisi saat pemesanan nomor",
+      "resepsionis: memanggil nomor antrian berikutnya dan menampilkan nomor yang dipanggil secara real‑time pada aplikasi pasien",
+      "sistem: melewatkan nomor antrian yang tidak hadir setelah dua panggilan",
+      "resepsionis: menyisipkan kembali pasien yang sebelumnya dilewati ke antrian",
+      "pasien lama: login dengan nomor HP terdaftar tanpa mengisi ulang data diri",
+      "pasien baru: mendaftar dengan nama, tanggal lahir, dan nomor HP sebelum mengambil nomor antrian"
+    ],
+    "outOfScopeList": [
+      "pemesanan H-1 (booking satu hari sebelum)",
+      "notifikasi WhatsApp tentang giliran pasien",
+      "pembayaran melalui aplikasi",
+      "penyimpanan data pasien (retensi)",
+      "menentukan urutan penyisipan kembali pasien yang dilewati"
+    ],
+    "stories": [
+      {
+        "id": 172,
+        "role": "pasien",
+        "feature": "mengambil nomor antrian via aplikasi mobile pada hari H mulai jam 6 pagi",
+        "benefit": "tidak perlu menunggu di ruang tunggu",
+        "rawAiOutput": {
+          "role": "pasien",
+          "benefit": "tidak perlu menunggu di ruang tunggu",
+          "feature": "mengambil nomor antrian via aplikasi mobile pada hari H mulai jam 6 pagi",
+          "out_of_scope": [
+            "pemesanan H-1 (booking satu hari sebelum)",
+            "notifikasi WhatsApp tentang giliran pasien",
+            "pembayaran melalui aplikasi",
+            "penyimpanan data pasien (retensi)",
+            "menentukan urutan penyisipan kembali pasien yang dilewati"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menghasilkan nomor antrian baru dan menampilkan konfirmasi kepada pasien",
+              "when": "pasien menekan tombol Ambil Nomor Antrian",
+              "given": "pasien membuka aplikasi pada hari H dan waktu sudah lewat jam 6 pagi"
+            },
+            {
+              "then": "sistem menolak proses dan memberi informasi bahwa pemesanan belum dibuka",
+              "when": "pasien menekan tombol Ambil Nomor Antrian",
+              "given": "pasien membuka aplikasi pada hari H sebelum jam 6 pagi"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 250,
+            "givenText": "pasien membuka aplikasi pada hari H dan waktu sudah lewat jam 6 pagi",
+            "whenText": "pasien menekan tombol Ambil Nomor Antrian",
+            "thenText": "sistem menghasilkan nomor antrian baru dan menampilkan konfirmasi kepada pasien",
+            "sortOrder": 1
+          },
+          {
+            "id": 251,
+            "givenText": "pasien membuka aplikasi pada hari H sebelum jam 6 pagi",
+            "whenText": "pasien menekan tombol Ambil Nomor Antrian",
+            "thenText": "sistem menolak proses dan memberi informasi bahwa pemesanan belum dibuka",
+            "sortOrder": 2
+          }
+        ]
+      },
+      {
+        "id": 173,
+        "role": "pasien",
+        "feature": "mengisi keluhan wajib maksimal 200 karakter saat mengambil nomor antrian",
+        "benefit": "memberikan informasi singkat kepada dokter",
+        "rawAiOutput": {
+          "role": "pasien",
+          "benefit": "memberikan informasi singkat kepada dokter",
+          "feature": "mengisi keluhan wajib maksimal 200 karakter saat mengambil nomor antrian",
+          "out_of_scope": [
+            "pemesanan H-1 (booking satu hari sebelum)",
+            "notifikasi WhatsApp tentang giliran pasien",
+            "pembayaran melalui aplikasi",
+            "penyimpanan data pasien (retensi)",
+            "menentukan urutan penyisipan kembali pasien yang dilewati"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menampilkan validasi bahwa keluhan wajib diisi",
+              "when": "pasien meninggalkan bidang keluhan kosong dan mencoba melanjutkan",
+              "given": "pasien berada pada formulir pengambilan nomor antrian"
+            },
+            {
+              "then": "sistem menolak penyimpanan dan menampilkan pesan bahwa teks tidak boleh melebihi 200 karakter",
+              "when": "pasien mencoba menyimpan",
+              "given": "pasien memasukkan teks lebih dari 200 karakter pada bidang keluhan"
+            },
+            {
+              "then": "keluhan disimpan bersama nomor antrian",
+              "when": "pasien menyimpan",
+              "given": "pasien mengisi keluhan dengan 200 karakter atau kurang"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 252,
+            "givenText": "pasien berada pada formulir pengambilan nomor antrian",
+            "whenText": "pasien meninggalkan bidang keluhan kosong dan mencoba melanjutkan",
+            "thenText": "sistem menampilkan validasi bahwa keluhan wajib diisi",
+            "sortOrder": 1
+          },
+          {
+            "id": 253,
+            "givenText": "pasien memasukkan teks lebih dari 200 karakter pada bidang keluhan",
+            "whenText": "pasien mencoba menyimpan",
+            "thenText": "sistem menolak penyimpanan dan menampilkan pesan bahwa teks tidak boleh melebihi 200 karakter",
+            "sortOrder": 2
+          },
+          {
+            "id": 254,
+            "givenText": "pasien mengisi keluhan dengan 200 karakter atau kurang",
+            "whenText": "pasien menyimpan",
+            "thenText": "keluhan disimpan bersama nomor antrian",
+            "sortOrder": 3
+          }
+        ]
+      },
+      {
+        "id": 174,
+        "role": "dokter",
+        "feature": "melihat daftar pasien hari ini beserta keluhan yang diisi saat pemesanan nomor",
+        "benefit": "memahami kebutuhan pasien sebelum bertemu",
+        "rawAiOutput": {
+          "role": "dokter",
+          "benefit": "memahami kebutuhan pasien sebelum bertemu",
+          "feature": "melihat daftar pasien hari ini beserta keluhan yang diisi saat pemesanan nomor",
+          "out_of_scope": [
+            "pemesanan H-1 (booking satu hari sebelum)",
+            "notifikasi WhatsApp tentang giliran pasien",
+            "pembayaran melalui aplikasi",
+            "penyimpanan data pasien (retensi)",
+            "menentukan urutan penyisipan kembali pasien yang dilewati"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menampilkan daftar semua pasien yang memiliki nomor antrian untuk hari tersebut lengkap dengan keluhan masing‑masing",
+              "when": "dokter membuka menu Daftar Pasien Hari Ini",
+              "given": "dokter sudah masuk ke sistem dan berada di halaman utama"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 255,
+            "givenText": "dokter sudah masuk ke sistem dan berada di halaman utama",
+            "whenText": "dokter membuka menu Daftar Pasien Hari Ini",
+            "thenText": "sistem menampilkan daftar semua pasien yang memiliki nomor antrian untuk hari tersebut lengkap dengan keluhan masing‑masing",
+            "sortOrder": 1
+          }
+        ]
+      },
+      {
+        "id": 175,
+        "role": "resepsionis",
+        "feature": "memanggil nomor antrian berikutnya dan menampilkan nomor yang dipanggil secara real‑time pada aplikasi pasien",
+        "benefit": "memudahkan pasien mengetahui giliran mereka",
+        "rawAiOutput": {
+          "role": "resepsionis",
+          "benefit": "memudahkan pasien mengetahui giliran mereka",
+          "feature": "memanggil nomor antrian berikutnya dan menampilkan nomor yang dipanggil secara real‑time pada aplikasi pasien",
+          "out_of_scope": [
+            "pemesanan H-1 (booking satu hari sebelum)",
+            "notifikasi WhatsApp tentang giliran pasien",
+            "pembayaran melalui aplikasi",
+            "penyimpanan data pasien (retensi)",
+            "menentukan urutan penyisipan kembali pasien yang dilewati"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menandai nomor tersebut sebagai dipanggil dan mengirimkan update ke aplikasi pasien sehingga nomor yang dipanggil terlihat secara real‑time",
+              "when": "resepsionis menekan tombol Panggil Nomor Berikutnya",
+              "given": "ada setidaknya satu nomor antrian menunggu di sistem"
+            },
+            {
+              "then": "aplikasi pasien menampilkan nomor yang sedang dipanggil",
+              "when": "sistem mengirim update nomor yang dipanggil",
+              "given": "seorang pasien sedang melihat aplikasi pada saat nomor dipanggil"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 256,
+            "givenText": "ada setidaknya satu nomor antrian menunggu di sistem",
+            "whenText": "resepsionis menekan tombol Panggil Nomor Berikutnya",
+            "thenText": "sistem menandai nomor tersebut sebagai dipanggil dan mengirimkan update ke aplikasi pasien sehingga nomor yang dipanggil terlihat secara real‑time",
+            "sortOrder": 1
+          },
+          {
+            "id": 257,
+            "givenText": "seorang pasien sedang melihat aplikasi pada saat nomor dipanggil",
+            "whenText": "sistem mengirim update nomor yang dipanggil",
+            "thenText": "aplikasi pasien menampilkan nomor yang sedang dipanggil",
+            "sortOrder": 2
+          }
+        ]
+      },
+      {
+        "id": 176,
+        "role": "sistem",
+        "feature": "melewatkan nomor antrian yang tidak hadir setelah dua panggilan",
+        "benefit": "menghindari penundaan antrian",
+        "rawAiOutput": {
+          "role": "sistem",
+          "benefit": "menghindari penundaan antrian",
+          "feature": "melewatkan nomor antrian yang tidak hadir setelah dua panggilan",
+          "out_of_scope": [
+            "pemesanan H-1 (booking satu hari sebelum)",
+            "notifikasi WhatsApp tentang giliran pasien",
+            "pembayaran melalui aplikasi",
+            "penyimpanan data pasien (retensi)",
+            "menentukan urutan penyisipan kembali pasien yang dilewati"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menandai nomor tersebut sebagai dilewati dan melanjutkan ke nomor berikutnya dalam antrian",
+              "when": "sistem mengevaluasi kondisi tersebut",
+              "given": "nomor antrian telah dipanggil dua kali tanpa respons pasien"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 258,
+            "givenText": "nomor antrian telah dipanggil dua kali tanpa respons pasien",
+            "whenText": "sistem mengevaluasi kondisi tersebut",
+            "thenText": "sistem menandai nomor tersebut sebagai dilewati dan melanjutkan ke nomor berikutnya dalam antrian",
+            "sortOrder": 1
+          }
+        ]
+      },
+      {
+        "id": 177,
+        "role": "resepsionis",
+        "feature": "menyisipkan kembali pasien yang sebelumnya dilewati ke antrian",
+        "benefit": "memungkinkan pasien yang terlambat tetap dilayani",
+        "rawAiOutput": {
+          "role": "resepsionis",
+          "benefit": "memungkinkan pasien yang terlambat tetap dilayani",
+          "feature": "menyisipkan kembali pasien yang sebelumnya dilewati ke antrian",
+          "out_of_scope": [
+            "pemesanan H-1 (booking satu hari sebelum)",
+            "notifikasi WhatsApp tentang giliran pasien",
+            "pembayaran melalui aplikasi",
+            "penyimpanan data pasien (retensi)",
+            "menentukan urutan penyisipan kembali pasien yang dilewati"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menambahkan pasien tersebut kembali ke dalam antrian pada posisi yang ditentukan oleh kebijakan",
+              "when": "resepsionis memilih opsi Sisipkan Kembali Pasien",
+              "given": "pasien yang sebelumnya dilewati datang ke resepsionis dan melapor"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 259,
+            "givenText": "pasien yang sebelumnya dilewati datang ke resepsionis dan melapor",
+            "whenText": "resepsionis memilih opsi Sisipkan Kembali Pasien",
+            "thenText": "sistem menambahkan pasien tersebut kembali ke dalam antrian pada posisi yang ditentukan oleh kebijakan",
+            "sortOrder": 1
+          }
+        ]
+      },
+      {
+        "id": 178,
+        "role": "pasien lama",
+        "feature": "login dengan nomor HP terdaftar tanpa mengisi ulang data diri",
+        "benefit": "mempercepat proses masuk ke antrian",
+        "rawAiOutput": {
+          "role": "pasien lama",
+          "benefit": "mempercepat proses masuk ke antrian",
+          "feature": "login dengan nomor HP terdaftar tanpa mengisi ulang data diri",
+          "out_of_scope": [
+            "pemesanan H-1 (booking satu hari sebelum)",
+            "notifikasi WhatsApp tentang giliran pasien",
+            "pembayaran melalui aplikasi",
+            "penyimpanan data pasien (retensi)",
+            "menentukan urutan penyisipan kembali pasien yang dilewati"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem mengautentikasi dan langsung masuk ke aplikasi tanpa meminta data pribadi tambahan",
+              "when": "pasien memasukkan nomor HP pada layar login dan menekan tombol Masuk",
+              "given": "pasien sudah memiliki akun dengan nomor HP terdaftar"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 260,
+            "givenText": "pasien sudah memiliki akun dengan nomor HP terdaftar",
+            "whenText": "pasien memasukkan nomor HP pada layar login dan menekan tombol Masuk",
+            "thenText": "sistem mengautentikasi dan langsung masuk ke aplikasi tanpa meminta data pribadi tambahan",
+            "sortOrder": 1
+          }
+        ]
+      },
+      {
+        "id": 179,
+        "role": "pasien baru",
+        "feature": "mendaftar dengan nama, tanggal lahir, dan nomor HP sebelum mengambil nomor antrian",
+        "benefit": "membuat data pasien baru tersimpan",
+        "rawAiOutput": {
+          "role": "pasien baru",
+          "benefit": "membuat data pasien baru tersimpan",
+          "feature": "mendaftar dengan nama, tanggal lahir, dan nomor HP sebelum mengambil nomor antrian",
+          "out_of_scope": [
+            "pemesanan H-1 (booking satu hari sebelum)",
+            "notifikasi WhatsApp tentang giliran pasien",
+            "pembayaran melalui aplikasi",
+            "penyimpanan data pasien (retensi)",
+            "menentukan urutan penyisipan kembali pasien yang dilewati"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem membuat profil pasien baru dan mengarahkan pasien ke proses pengambilan nomor antrian",
+              "when": "pasien memilih opsi Daftar Baru dan mengisi nama, tanggal lahir, serta nomor HP lalu menyimpan",
+              "given": "pasien belum terdaftar di sistem"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 261,
+            "givenText": "pasien belum terdaftar di sistem",
+            "whenText": "pasien memilih opsi Daftar Baru dan mengisi nama, tanggal lahir, serta nomor HP lalu menyimpan",
+            "thenText": "sistem membuat profil pasien baru dan mengarahkan pasien ke proses pengambilan nomor antrian",
+            "sortOrder": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "runIndex": 2,
+    "newTranscriptId": 37,
+    "status": "completed",
+    "durationMs": 49570,
+    "model": "openai/gpt-oss-120b",
+    "temperature": 1,
+    "errorMessage": null,
+    "storyCount": 9,
+    "acCountPerStory": [
+      3,
+      3,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    "zeroAcStoryCount": 0,
+    "hasTemplatePrefix": false,
+    "templatePrefixStoriesCount": 0,
+    "scopeLeakWords": [],
+    "scopeLeakLocations": [],
+    "hasScopeLeak": false,
+    "detailsDetectedWords": [
+      "tombol",
+      "formulir",
+      "halaman"
+    ],
+    "detailsCountAC": 8,
+    "roleFeatureList": [
+      "patient: ambil nomor antrian via HP pada hari H mulai jam 6 pagi",
+      "patient: mengisi keluhan wajib maksimal 200 karakter saat ambil nomor",
+      "doctor: melihat daftar pasien hari ini beserta keluhan",
+      "receptionist: memanggil nomor antrian berikutnya",
+      "patient: melihat nomor yang sedang dipanggil secara real-time di HP",
+      "receptionist: sistem otomatis melewati nomor setelah dua kali tidak muncul",
+      "receptionist: menyisipkan kembali nomor pasien yang tidak hadir setelah pasien melapor",
+      "patient: login dengan nomor HP terdaftar (pasien lama)",
+      "patient: mendaftar akun baru dengan mengisi nama, tanggal lahir, dan nomor HP"
+    ],
+    "outOfScopeList": [
+      "notifikasi WhatsApp ke pasien",
+      "booking H-1",
+      "penentuan urutan penyisipan nomor yang dilewati",
+      "penyimpanan data pasien (retention policy)",
+      "pembayaran melalui aplikasi"
+    ],
+    "stories": [
+      {
+        "id": 180,
+        "role": "patient",
+        "feature": "ambil nomor antrian via HP pada hari H mulai jam 6 pagi",
+        "benefit": "mengurangi antri di ruang tunggu",
+        "rawAiOutput": {
+          "role": "patient",
+          "benefit": "mengurangi antri di ruang tunggu",
+          "feature": "ambil nomor antrian via HP pada hari H mulai jam 6 pagi",
+          "out_of_scope": [
+            "notifikasi WhatsApp ke pasien",
+            "booking H-1",
+            "penentuan urutan penyisipan nomor yang dilewati",
+            "penyimpanan data pasien (retention policy)",
+            "pembayaran melalui aplikasi"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem tidak mengizinkan pengambilan nomor sampai jam 6",
+              "when": "pasien mencoba mengambil nomor antrian",
+              "given": "pasien membuka aplikasi sebelum jam 6 pagi pada hari H"
+            },
+            {
+              "then": "sistem menghasilkan nomor antrian unik dan menambahnya ke dalam antrian",
+              "when": "pasien menekan tombol ambil nomor",
+              "given": "jam sudah mencapai 6 pagi pada hari H"
+            },
+            {
+              "then": "sistem menolak permintaan dan tidak membuat nomor antrian",
+              "when": "pasien mencoba mengambil nomor antrian",
+              "given": "hari bukan hari H"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 262,
+            "givenText": "pasien membuka aplikasi sebelum jam 6 pagi pada hari H",
+            "whenText": "pasien mencoba mengambil nomor antrian",
+            "thenText": "sistem tidak mengizinkan pengambilan nomor sampai jam 6",
+            "sortOrder": 1
+          },
+          {
+            "id": 263,
+            "givenText": "jam sudah mencapai 6 pagi pada hari H",
+            "whenText": "pasien menekan tombol ambil nomor",
+            "thenText": "sistem menghasilkan nomor antrian unik dan menambahnya ke dalam antrian",
+            "sortOrder": 2
+          },
+          {
+            "id": 264,
+            "givenText": "hari bukan hari H",
+            "whenText": "pasien mencoba mengambil nomor antrian",
+            "thenText": "sistem menolak permintaan dan tidak membuat nomor antrian",
+            "sortOrder": 3
+          }
+        ]
+      },
+      {
+        "id": 181,
+        "role": "patient",
+        "feature": "mengisi keluhan wajib maksimal 200 karakter saat ambil nomor",
+        "benefit": "dokter dapat mengetahui masalah pasien",
+        "rawAiOutput": {
+          "role": "patient",
+          "benefit": "dokter dapat mengetahui masalah pasien",
+          "feature": "mengisi keluhan wajib maksimal 200 karakter saat ambil nomor",
+          "out_of_scope": [
+            "notifikasi WhatsApp ke pasien",
+            "booking H-1",
+            "penentuan urutan penyisipan nomor yang dilewati",
+            "penyimpanan data pasien (retention policy)",
+            "pembayaran melalui aplikasi"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menolak penyimpanan dan meminta pasien mengisi keluhan",
+              "when": "keluhan tidak diisi",
+              "given": "pasien sedang mengisi formulir ambil nomor"
+            },
+            {
+              "then": "sistem menolak dan meminta pasien memperpendek keluhan menjadi maksimal 200 karakter",
+              "when": "pasien mengirim formulir",
+              "given": "keluhan diisi lebih dari 200 karakter"
+            },
+            {
+              "then": "sistem menyimpan keluhan bersama nomor antrian",
+              "when": "pasien mengirim formulir",
+              "given": "keluhan diisi ≤200 karakter"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 265,
+            "givenText": "pasien sedang mengisi formulir ambil nomor",
+            "whenText": "keluhan tidak diisi",
+            "thenText": "sistem menolak penyimpanan dan meminta pasien mengisi keluhan",
+            "sortOrder": 1
+          },
+          {
+            "id": 266,
+            "givenText": "keluhan diisi lebih dari 200 karakter",
+            "whenText": "pasien mengirim formulir",
+            "thenText": "sistem menolak dan meminta pasien memperpendek keluhan menjadi maksimal 200 karakter",
+            "sortOrder": 2
+          },
+          {
+            "id": 267,
+            "givenText": "keluhan diisi ≤200 karakter",
+            "whenText": "pasien mengirim formulir",
+            "thenText": "sistem menyimpan keluhan bersama nomor antrian",
+            "sortOrder": 3
+          }
+        ]
+      },
+      {
+        "id": 182,
+        "role": "doctor",
+        "feature": "melihat daftar pasien hari ini beserta keluhan",
+        "benefit": "memungkinkan persiapan konsultasi",
+        "rawAiOutput": {
+          "role": "doctor",
+          "benefit": "memungkinkan persiapan konsultasi",
+          "feature": "melihat daftar pasien hari ini beserta keluhan",
+          "out_of_scope": [
+            "notifikasi WhatsApp ke pasien",
+            "booking H-1",
+            "penentuan urutan penyisipan nomor yang dilewati",
+            "penyimpanan data pasien (retention policy)",
+            "pembayaran melalui aplikasi"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menampilkan semua nomor antrian yang belum selesai beserta keluhan masing-masing",
+              "when": "dokter membuka daftar antrian hari ini",
+              "given": "dokter sudah login ke sistem pada hari H"
+            },
+            {
+              "then": "keluhan ditampilkan tidak melebihi 200 karakter",
+              "when": "dokter melihat detail keluhan",
+              "given": "daftar antrian ditampilkan"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 268,
+            "givenText": "dokter sudah login ke sistem pada hari H",
+            "whenText": "dokter membuka daftar antrian hari ini",
+            "thenText": "sistem menampilkan semua nomor antrian yang belum selesai beserta keluhan masing-masing",
+            "sortOrder": 1
+          },
+          {
+            "id": 269,
+            "givenText": "daftar antrian ditampilkan",
+            "whenText": "dokter melihat detail keluhan",
+            "thenText": "keluhan ditampilkan tidak melebihi 200 karakter",
+            "sortOrder": 2
+          }
+        ]
+      },
+      {
+        "id": 183,
+        "role": "receptionist",
+        "feature": "memanggil nomor antrian berikutnya",
+        "benefit": "mengatur alur antrian",
+        "rawAiOutput": {
+          "role": "receptionist",
+          "benefit": "mengatur alur antrian",
+          "feature": "memanggil nomor antrian berikutnya",
+          "out_of_scope": [
+            "notifikasi WhatsApp ke pasien",
+            "booking H-1",
+            "penentuan urutan penyisipan nomor yang dilewati",
+            "penyimpanan data pasien (retention policy)",
+            "pembayaran melalui aplikasi"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menandai nomor tersebut sebagai dipanggil dan mengirimkan nomor ke tampilan pasien",
+              "when": "resepsionis menekan tombol panggil selanjutnya",
+              "given": "ada nomor antrian yang menunggu dipanggil"
+            },
+            {
+              "then": "sistem memberi tahu bahwa tidak ada antrian yang tersedia",
+              "when": "resepsionis menekan tombol panggil selanjutnya",
+              "given": "tidak ada nomor antrian yang menunggu"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 270,
+            "givenText": "ada nomor antrian yang menunggu dipanggil",
+            "whenText": "resepsionis menekan tombol panggil selanjutnya",
+            "thenText": "sistem menandai nomor tersebut sebagai dipanggil dan mengirimkan nomor ke tampilan pasien",
+            "sortOrder": 1
+          },
+          {
+            "id": 271,
+            "givenText": "tidak ada nomor antrian yang menunggu",
+            "whenText": "resepsionis menekan tombol panggil selanjutnya",
+            "thenText": "sistem memberi tahu bahwa tidak ada antrian yang tersedia",
+            "sortOrder": 2
+          }
+        ]
+      },
+      {
+        "id": 184,
+        "role": "patient",
+        "feature": "melihat nomor yang sedang dipanggil secara real-time di HP",
+        "benefit": "mengetahui giliran tanpa menunggu di ruang tunggu",
+        "rawAiOutput": {
+          "role": "patient",
+          "benefit": "mengetahui giliran tanpa menunggu di ruang tunggu",
+          "feature": "melihat nomor yang sedang dipanggil secara real-time di HP",
+          "out_of_scope": [
+            "notifikasi WhatsApp ke pasien",
+            "booking H-1",
+            "penentuan urutan penyisipan nomor yang dilewati",
+            "penyimpanan data pasien (retention policy)",
+            "pembayaran melalui aplikasi"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "aplikasi menampilkan nomor yang sedang dipanggil secara real-time",
+              "when": "nomor dipanggil oleh resepsionis",
+              "given": "aplikasi pasien terbuka"
+            },
+            {
+              "then": "tampilan pasien otomatis terupdate ke nomor baru",
+              "when": "perubahan terjadi",
+              "given": "nomor yang dipanggil berubah"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 272,
+            "givenText": "aplikasi pasien terbuka",
+            "whenText": "nomor dipanggil oleh resepsionis",
+            "thenText": "aplikasi menampilkan nomor yang sedang dipanggil secara real-time",
+            "sortOrder": 1
+          },
+          {
+            "id": 273,
+            "givenText": "nomor yang dipanggil berubah",
+            "whenText": "perubahan terjadi",
+            "thenText": "tampilan pasien otomatis terupdate ke nomor baru",
+            "sortOrder": 2
+          }
+        ]
+      },
+      {
+        "id": 185,
+        "role": "receptionist",
+        "feature": "sistem otomatis melewati nomor setelah dua kali tidak muncul",
+        "benefit": "mempercepat antrian",
+        "rawAiOutput": {
+          "role": "receptionist",
+          "benefit": "mempercepat antrian",
+          "feature": "sistem otomatis melewati nomor setelah dua kali tidak muncul",
+          "out_of_scope": [
+            "notifikasi WhatsApp ke pasien",
+            "booking H-1",
+            "penentuan urutan penyisipan nomor yang dilewati",
+            "penyimpanan data pasien (retention policy)",
+            "pembayaran melalui aplikasi"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "nomor tersebut ditandai sebagai dilewati dan tidak lagi muncul sebagai nomor berikutnya",
+              "when": "sistem memeriksa status panggilan",
+              "given": "nomor telah dipanggil dua kali tanpa konfirmasi kedatangan pasien"
+            },
+            {
+              "then": "nomor yang dilewati tidak muncul lagi dalam urutan antrian",
+              "when": "resepsionis memanggil nomor selanjutnya",
+              "given": "nomor telah dilewati"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 274,
+            "givenText": "nomor telah dipanggil dua kali tanpa konfirmasi kedatangan pasien",
+            "whenText": "sistem memeriksa status panggilan",
+            "thenText": "nomor tersebut ditandai sebagai dilewati dan tidak lagi muncul sebagai nomor berikutnya",
+            "sortOrder": 1
+          },
+          {
+            "id": 275,
+            "givenText": "nomor telah dilewati",
+            "whenText": "resepsionis memanggil nomor selanjutnya",
+            "thenText": "nomor yang dilewati tidak muncul lagi dalam urutan antrian",
+            "sortOrder": 2
+          }
+        ]
+      },
+      {
+        "id": 186,
+        "role": "receptionist",
+        "feature": "menyisipkan kembali nomor pasien yang tidak hadir setelah pasien melapor",
+        "benefit": "memberi kesempatan pasien untuk tetap dilayani",
+        "rawAiOutput": {
+          "role": "receptionist",
+          "benefit": "memberi kesempatan pasien untuk tetap dilayani",
+          "feature": "menyisipkan kembali nomor pasien yang tidak hadir setelah pasien melapor",
+          "out_of_scope": [
+            "notifikasi WhatsApp ke pasien",
+            "booking H-1",
+            "penentuan urutan penyisipan nomor yang dilewati",
+            "penyimpanan data pasien (retention policy)",
+            "pembayaran melalui aplikasi"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menempatkan nomor tersebut kembali ke antrian dan memungkinkan dipanggil lagi",
+              "when": "resepsionis menambahkan kembali nomor ke antrian",
+              "given": "pasien yang nomor nya dilewati melapor ke resepsionis"
+            },
+            {
+              "then": "pasien dapat melihat nomor baru yang ditempatkan di antrian",
+              "when": "pasien membuka aplikasi",
+              "given": "nomor berhasil disisipkan kembali"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 276,
+            "givenText": "pasien yang nomor nya dilewati melapor ke resepsionis",
+            "whenText": "resepsionis menambahkan kembali nomor ke antrian",
+            "thenText": "sistem menempatkan nomor tersebut kembali ke antrian dan memungkinkan dipanggil lagi",
+            "sortOrder": 1
+          },
+          {
+            "id": 277,
+            "givenText": "nomor berhasil disisipkan kembali",
+            "whenText": "pasien membuka aplikasi",
+            "thenText": "pasien dapat melihat nomor baru yang ditempatkan di antrian",
+            "sortOrder": 2
+          }
+        ]
+      },
+      {
+        "id": 187,
+        "role": "patient",
+        "feature": "login dengan nomor HP terdaftar (pasien lama)",
+        "benefit": "mempercepat proses antrian",
+        "rawAiOutput": {
+          "role": "patient",
+          "benefit": "mempercepat proses antrian",
+          "feature": "login dengan nomor HP terdaftar (pasien lama)",
+          "out_of_scope": [
+            "notifikasi WhatsApp ke pasien",
+            "booking H-1",
+            "penentuan urutan penyisipan nomor yang dilewati",
+            "penyimpanan data pasien (retention policy)",
+            "pembayaran melalui aplikasi"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem mengautentikasi dan mengarahkan ke halaman ambil nomor tanpa meminta data pribadi lagi",
+              "when": "memasukkan nomor HP terdaftar dan menekan login",
+              "given": "pasien lama membuka aplikasi"
+            },
+            {
+              "then": "sistem menawarkan pilihan untuk melakukan registrasi",
+              "when": "pasien mencoba login",
+              "given": "nomor HP tidak terdaftar"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 278,
+            "givenText": "pasien lama membuka aplikasi",
+            "whenText": "memasukkan nomor HP terdaftar dan menekan login",
+            "thenText": "sistem mengautentikasi dan mengarahkan ke halaman ambil nomor tanpa meminta data pribadi lagi",
+            "sortOrder": 1
+          },
+          {
+            "id": 279,
+            "givenText": "nomor HP tidak terdaftar",
+            "whenText": "pasien mencoba login",
+            "thenText": "sistem menawarkan pilihan untuk melakukan registrasi",
+            "sortOrder": 2
+          }
+        ]
+      },
+      {
+        "id": 188,
+        "role": "patient",
+        "feature": "mendaftar akun baru dengan mengisi nama, tanggal lahir, dan nomor HP",
+        "benefit": "dapat menggunakan antrian online",
+        "rawAiOutput": {
+          "role": "patient",
+          "benefit": "dapat menggunakan antrian online",
+          "feature": "mendaftar akun baru dengan mengisi nama, tanggal lahir, dan nomor HP",
+          "out_of_scope": [
+            "notifikasi WhatsApp ke pasien",
+            "booking H-1",
+            "penentuan urutan penyisipan nomor yang dilewati",
+            "penyimpanan data pasien (retention policy)",
+            "pembayaran melalui aplikasi"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem membuat akun baru dan mengizinkan pasien mengambil nomor antrian",
+              "when": "memilih registrasi dan mengisi nama, tanggal lahir, serta nomor HP",
+              "given": "pasien baru membuka aplikasi"
+            },
+            {
+              "then": "sistem menolak registrasi dan meminta melengkapi semua field wajib",
+              "when": "pasien mengirimkan formulir registrasi",
+              "given": "data yang dimasukkan tidak lengkap"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 280,
+            "givenText": "pasien baru membuka aplikasi",
+            "whenText": "memilih registrasi dan mengisi nama, tanggal lahir, serta nomor HP",
+            "thenText": "sistem membuat akun baru dan mengizinkan pasien mengambil nomor antrian",
+            "sortOrder": 1
+          },
+          {
+            "id": 281,
+            "givenText": "data yang dimasukkan tidak lengkap",
+            "whenText": "pasien mengirimkan formulir registrasi",
+            "thenText": "sistem menolak registrasi dan meminta melengkapi semua field wajib",
+            "sortOrder": 2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "runIndex": 3,
+    "newTranscriptId": 38,
+    "status": "completed",
+    "durationMs": 39198,
+    "model": "openai/gpt-oss-120b",
+    "temperature": 1,
+    "errorMessage": null,
+    "storyCount": 9,
+    "acCountPerStory": [
+      1,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "zeroAcStoryCount": 0,
+    "hasTemplatePrefix": false,
+    "templatePrefixStoriesCount": 0,
+    "scopeLeakWords": [],
+    "scopeLeakLocations": [],
+    "hasScopeLeak": false,
+    "detailsDetectedWords": [
+      "tombol",
+      "formulir",
+      "halaman",
+      "dashboard"
+    ],
+    "detailsCountAC": 6,
+    "roleFeatureList": [
+      "pasien: mengambil nomor antrian melalui aplikasi HP pada hari H mulai jam 6 pagi",
+      "pasien: mengisi keluhan maksimal 200 karakter saat mengambil nomor antrian",
+      "dokter: melihat daftar pasien hari ini beserta keluhan yang diisi saat ambil nomor",
+      "resepsionis: memanggil nomor antrian berikutnya",
+      "pasien: melihat nomor antrian yang sedang dipanggil secara real‑time di aplikasi HP",
+      "sistem: melewati nomor antrian setelah dipanggil dua kali tanpa kehadiran pasien",
+      "resepsionis: menyisipkan kembali nomor antrian yang sebelumnya dilewati ketika pasien melapor hadir",
+      "pasien lama: login menggunakan nomor HP terdaftar tanpa mengisi data diri lagi",
+      "pasien baru: mendaftar dengan mengisi nama, tanggal lahir, dan nomor HP"
+    ],
+    "outOfScopeList": [
+      "booking H-1",
+      "notifikasi WhatsApp ke pasien",
+      "pembayaran melalui aplikasi",
+      "penentuan lama penyimpanan data pasien",
+      "penentuan posisi penyisipan kembali dalam antrian"
+    ],
+    "stories": [
+      {
+        "id": 189,
+        "role": "pasien",
+        "feature": "mengambil nomor antrian melalui aplikasi HP pada hari H mulai jam 6 pagi",
+        "benefit": "mengurangi antrean di ruang tunggu",
+        "rawAiOutput": {
+          "role": "pasien",
+          "benefit": "mengurangi antrean di ruang tunggu",
+          "feature": "mengambil nomor antrian melalui aplikasi HP pada hari H mulai jam 6 pagi",
+          "out_of_scope": [
+            "booking H-1",
+            "notifikasi WhatsApp ke pasien",
+            "pembayaran melalui aplikasi",
+            "penentuan lama penyimpanan data pasien",
+            "penentuan posisi penyisipan kembali dalam antrian"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menghasilkan nomor antrian unik dan menampilkannya kepada pasien",
+              "when": "pasien menekan tombol ambil nomor antrian",
+              "given": "pasien membuka aplikasi pada hari H setelah pukul 06:00"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 282,
+            "givenText": "pasien membuka aplikasi pada hari H setelah pukul 06:00",
+            "whenText": "pasien menekan tombol ambil nomor antrian",
+            "thenText": "sistem menghasilkan nomor antrian unik dan menampilkannya kepada pasien",
+            "sortOrder": 1
+          }
+        ]
+      },
+      {
+        "id": 190,
+        "role": "pasien",
+        "feature": "mengisi keluhan maksimal 200 karakter saat mengambil nomor antrian",
+        "benefit": "memudahkan dokter melihat keluhan sebelumnya",
+        "rawAiOutput": {
+          "role": "pasien",
+          "benefit": "memudahkan dokter melihat keluhan sebelumnya",
+          "feature": "mengisi keluhan maksimal 200 karakter saat mengambil nomor antrian",
+          "out_of_scope": [
+            "booking H-1",
+            "notifikasi WhatsApp ke pasien",
+            "pembayaran melalui aplikasi",
+            "penentuan lama penyimpanan data pasien",
+            "penentuan posisi penyisipan kembali dalam antrian"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menolak penyimpanan dan menampilkan pesan batas karakter",
+              "when": "pasien memasukkan keluhan yang panjangnya lebih dari 200 karakter",
+              "given": "pasien berada pada formulir ambil nomor antrian"
+            },
+            {
+              "then": "sistem menyimpan keluhan bersama nomor antrian",
+              "when": "pasien memasukkan keluhan tidak lebih dari 200 karakter",
+              "given": "pasien berada pada formulir ambil nomor antrian"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 283,
+            "givenText": "pasien berada pada formulir ambil nomor antrian",
+            "whenText": "pasien memasukkan keluhan yang panjangnya lebih dari 200 karakter",
+            "thenText": "sistem menolak penyimpanan dan menampilkan pesan batas karakter",
+            "sortOrder": 1
+          },
+          {
+            "id": 284,
+            "givenText": "pasien berada pada formulir ambil nomor antrian",
+            "whenText": "pasien memasukkan keluhan tidak lebih dari 200 karakter",
+            "thenText": "sistem menyimpan keluhan bersama nomor antrian",
+            "sortOrder": 2
+          }
+        ]
+      },
+      {
+        "id": 191,
+        "role": "dokter",
+        "feature": "melihat daftar pasien hari ini beserta keluhan yang diisi saat ambil nomor",
+        "benefit": "menyiapkan pemeriksaan dengan informasi lengkap",
+        "rawAiOutput": {
+          "role": "dokter",
+          "benefit": "menyiapkan pemeriksaan dengan informasi lengkap",
+          "feature": "melihat daftar pasien hari ini beserta keluhan yang diisi saat ambil nomor",
+          "out_of_scope": [
+            "booking H-1",
+            "notifikasi WhatsApp ke pasien",
+            "pembayaran melalui aplikasi",
+            "penentuan lama penyimpanan data pasien",
+            "penentuan posisi penyisipan kembali dalam antrian"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menampilkan daftar berisi nama pasien, nomor antrian, dan keluhan masing‑masing",
+              "when": "dokter membuka halaman daftar pasien hari ini",
+              "given": "dokter telah login ke sistem"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 285,
+            "givenText": "dokter telah login ke sistem",
+            "whenText": "dokter membuka halaman daftar pasien hari ini",
+            "thenText": "sistem menampilkan daftar berisi nama pasien, nomor antrian, dan keluhan masing‑masing",
+            "sortOrder": 1
+          }
+        ]
+      },
+      {
+        "id": 192,
+        "role": "resepsionis",
+        "feature": "memanggil nomor antrian berikutnya",
+        "benefit": "mengatur antrian secara real‑time",
+        "rawAiOutput": {
+          "role": "resepsionis",
+          "benefit": "mengatur antrian secara real‑time",
+          "feature": "memanggil nomor antrian berikutnya",
+          "out_of_scope": [
+            "booking H-1",
+            "notifikasi WhatsApp ke pasien",
+            "pembayaran melalui aplikasi",
+            "penentuan lama penyimpanan data pasien",
+            "penentuan posisi penyisipan kembali dalam antrian"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menandai nomor tersebut sebagai sedang dipanggil dan mengirimkan informasi ke semua aplikasi pasien",
+              "when": "resepsionis menekan tombol panggil berikutnya",
+              "given": "resepsionis berada pada dashboard antrian"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 286,
+            "givenText": "resepsionis berada pada dashboard antrian",
+            "whenText": "resepsionis menekan tombol panggil berikutnya",
+            "thenText": "sistem menandai nomor tersebut sebagai sedang dipanggil dan mengirimkan informasi ke semua aplikasi pasien",
+            "sortOrder": 1
+          }
+        ]
+      },
+      {
+        "id": 193,
+        "role": "pasien",
+        "feature": "melihat nomor antrian yang sedang dipanggil secara real‑time di aplikasi HP",
+        "benefit": "mengetahui giliran tanpa harus menunggu di ruang tunggu",
+        "rawAiOutput": {
+          "role": "pasien",
+          "benefit": "mengetahui giliran tanpa harus menunggu di ruang tunggu",
+          "feature": "melihat nomor antrian yang sedang dipanggil secara real‑time di aplikasi HP",
+          "out_of_scope": [
+            "booking H-1",
+            "notifikasi WhatsApp ke pasien",
+            "pembayaran melalui aplikasi",
+            "penentuan lama penyimpanan data pasien",
+            "penentuan posisi penyisipan kembali dalam antrian"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "aplikasi menampilkan nomor terbaru secara real‑time kepada pasien",
+              "when": "sistem memperbarui nomor yang sedang dipanggil",
+              "given": "pasien telah membuka aplikasi dan terhubung ke antrian"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 287,
+            "givenText": "pasien telah membuka aplikasi dan terhubung ke antrian",
+            "whenText": "sistem memperbarui nomor yang sedang dipanggil",
+            "thenText": "aplikasi menampilkan nomor terbaru secara real‑time kepada pasien",
+            "sortOrder": 1
+          }
+        ]
+      },
+      {
+        "id": 194,
+        "role": "sistem",
+        "feature": "melewati nomor antrian setelah dipanggil dua kali tanpa kehadiran pasien",
+        "benefit": "mempercepat proses antrian",
+        "rawAiOutput": {
+          "role": "sistem",
+          "benefit": "mempercepat proses antrian",
+          "feature": "melewati nomor antrian setelah dipanggil dua kali tanpa kehadiran pasien",
+          "out_of_scope": [
+            "booking H-1",
+            "notifikasi WhatsApp ke pasien",
+            "pembayaran melalui aplikasi",
+            "penentuan lama penyimpanan data pasien",
+            "penentuan posisi penyisipan kembali dalam antrian"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menandai nomor tersebut sebagai dilewati dan melanjutkan ke nomor berikutnya",
+              "when": "sistem mendeteksi tidak ada respons setelah panggilan kedua",
+              "given": "nomor antrian telah dipanggil dua kali berturut‑turut dan tidak ada pasien yang hadir"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 288,
+            "givenText": "nomor antrian telah dipanggil dua kali berturut‑turut dan tidak ada pasien yang hadir",
+            "whenText": "sistem mendeteksi tidak ada respons setelah panggilan kedua",
+            "thenText": "sistem menandai nomor tersebut sebagai dilewati dan melanjutkan ke nomor berikutnya",
+            "sortOrder": 1
+          }
+        ]
+      },
+      {
+        "id": 195,
+        "role": "resepsionis",
+        "feature": "menyisipkan kembali nomor antrian yang sebelumnya dilewati ketika pasien melapor hadir",
+        "benefit": "memberi kesempatan kembali kepada pasien yang terlambat",
+        "rawAiOutput": {
+          "role": "resepsionis",
+          "benefit": "memberi kesempatan kembali kepada pasien yang terlambat",
+          "feature": "menyisipkan kembali nomor antrian yang sebelumnya dilewati ketika pasien melapor hadir",
+          "out_of_scope": [
+            "booking H-1",
+            "notifikasi WhatsApp ke pasien",
+            "pembayaran melalui aplikasi",
+            "penentuan lama penyimpanan data pasien",
+            "penentuan posisi penyisipan kembali dalam antrian"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menambahkan kembali nomor tersebut ke antrian pada posisi yang ditentukan",
+              "when": "resepsionis memilih opsi sisipkan kembali ke antrian",
+              "given": "pasien yang nomor antrinya sebelumnya dilewati melapor ke resepsionis"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 289,
+            "givenText": "pasien yang nomor antrinya sebelumnya dilewati melapor ke resepsionis",
+            "whenText": "resepsionis memilih opsi sisipkan kembali ke antrian",
+            "thenText": "sistem menambahkan kembali nomor tersebut ke antrian pada posisi yang ditentukan",
+            "sortOrder": 1
+          }
+        ]
+      },
+      {
+        "id": 196,
+        "role": "pasien lama",
+        "feature": "login menggunakan nomor HP terdaftar tanpa mengisi data diri lagi",
+        "benefit": "mempercepat proses masuk ke aplikasi",
+        "rawAiOutput": {
+          "role": "pasien lama",
+          "benefit": "mempercepat proses masuk ke aplikasi",
+          "feature": "login menggunakan nomor HP terdaftar tanpa mengisi data diri lagi",
+          "out_of_scope": [
+            "booking H-1",
+            "notifikasi WhatsApp ke pasien",
+            "pembayaran melalui aplikasi",
+            "penentuan lama penyimpanan data pasien",
+            "penentuan posisi penyisipan kembali dalam antrian"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem mengautentikasi dan mengarahkan pasien ke beranda aplikasi",
+              "when": "pasien memasukkan nomor HP pada layar login dan menekan masuk",
+              "given": "pasien memiliki nomor HP yang sudah terdaftar di sistem"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 290,
+            "givenText": "pasien memiliki nomor HP yang sudah terdaftar di sistem",
+            "whenText": "pasien memasukkan nomor HP pada layar login dan menekan masuk",
+            "thenText": "sistem mengautentikasi dan mengarahkan pasien ke beranda aplikasi",
+            "sortOrder": 1
+          }
+        ]
+      },
+      {
+        "id": 197,
+        "role": "pasien baru",
+        "feature": "mendaftar dengan mengisi nama, tanggal lahir, dan nomor HP",
+        "benefit": "membuat akun untuk mengambil nomor antrian",
+        "rawAiOutput": {
+          "role": "pasien baru",
+          "benefit": "membuat akun untuk mengambil nomor antrian",
+          "feature": "mendaftar dengan mengisi nama, tanggal lahir, dan nomor HP",
+          "out_of_scope": [
+            "booking H-1",
+            "notifikasi WhatsApp ke pasien",
+            "pembayaran melalui aplikasi",
+            "penentuan lama penyimpanan data pasien",
+            "penentuan posisi penyisipan kembali dalam antrian"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem membuat akun baru dan mengizinkan pengguna mengakses fitur ambil nomor antrian",
+              "when": "pengguna mengisi nama, tanggal lahir, dan nomor HP pada formulir pendaftaran dan menekan daftar",
+              "given": "pengguna belum memiliki akun di sistem"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 291,
+            "givenText": "pengguna belum memiliki akun di sistem",
+            "whenText": "pengguna mengisi nama, tanggal lahir, dan nomor HP pada formulir pendaftaran dan menekan daftar",
+            "thenText": "sistem membuat akun baru dan mengizinkan pengguna mengakses fitur ambil nomor antrian",
+            "sortOrder": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "runIndex": 4,
+    "newTranscriptId": 39,
+    "status": "completed",
+    "durationMs": 29558,
+    "model": "openai/gpt-oss-120b",
+    "temperature": 1,
+    "errorMessage": null,
+    "storyCount": 6,
+    "acCountPerStory": [
+      2,
+      2,
+      1,
+      1,
+      2,
+      1
+    ],
+    "zeroAcStoryCount": 0,
+    "hasTemplatePrefix": false,
+    "templatePrefixStoriesCount": 0,
+    "scopeLeakWords": [],
+    "scopeLeakLocations": [],
+    "hasScopeLeak": false,
+    "detailsDetectedWords": [
+      "tombol",
+      "halaman"
+    ],
+    "detailsCountAC": 7,
+    "roleFeatureList": [
+      "Pasien: mengambil nomor antrian melalui aplikasi pada hari H mulai jam 6 pagi serta mengisi keluhan wajib maksimal 200 karakter",
+      "Pasien: login dengan nomor HP terdaftar (pasien lama)",
+      "Pasien: mendaftar akun baru dengan mengisi nama, tanggal lahir, dan nomor HP",
+      "Dokter: melihat daftar pasien hari ini beserta keluhan yang diisi saat ambil nomor",
+      "Resepsionis: memanggil nomor antrian berikutnya dan menampilkan nomor yang dipanggil secara live di HP pasien",
+      "Resepsionis: melewati nomor antrian setelah dipanggil dua kali tanpa kedatangan pasien"
+    ],
+    "outOfScopeList": [
+      "booking antrian H-1 (hari sebelum hari H)",
+      "notifikasi WhatsApp ke pasien",
+      "pembayaran via aplikasi",
+      "penentuan urutan penyisipan ulang nomor antrian setelah tidak hadir",
+      "penentuan kebijakan penyimpanan data pasien"
+    ],
+    "stories": [
+      {
+        "id": 198,
+        "role": "Pasien",
+        "feature": "mengambil nomor antrian melalui aplikasi pada hari H mulai jam 6 pagi serta mengisi keluhan wajib maksimal 200 karakter",
+        "benefit": "tidak perlu menunggu di ruang tunggu dan membantu persiapan layanan",
+        "rawAiOutput": {
+          "role": "Pasien",
+          "benefit": "tidak perlu menunggu di ruang tunggu dan membantu persiapan layanan",
+          "feature": "mengambil nomor antrian melalui aplikasi pada hari H mulai jam 6 pagi serta mengisi keluhan wajib maksimal 200 karakter",
+          "out_of_scope": [
+            "booking antrian H-1 (hari sebelum hari H)",
+            "notifikasi WhatsApp ke pasien",
+            "pembayaran via aplikasi",
+            "penentuan urutan penyisipan ulang nomor antrian setelah tidak hadir",
+            "penentuan kebijakan penyimpanan data pasien"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menghasilkan nomor antrian unik, menyimpan keluhan, dan menampilkan nomor tersebut kepada pasien",
+              "when": "pasien membuka aplikasi, memilih ambil nomor, mengisi keluhan tidak lebih dari 200 karakter, dan menekan tombol konfirmasi",
+              "given": "hari H dan waktu sudah mencapai jam 06:00"
+            },
+            {
+              "then": "sistem menolak proses dan meminta pasien mengisi keluhan karena wajib",
+              "when": "pasien menekan tombol konfirmasi",
+              "given": "pasien berada pada form ambil nomor tanpa mengisi keluhan"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 292,
+            "givenText": "hari H dan waktu sudah mencapai jam 06:00",
+            "whenText": "pasien membuka aplikasi, memilih ambil nomor, mengisi keluhan tidak lebih dari 200 karakter, dan menekan tombol konfirmasi",
+            "thenText": "sistem menghasilkan nomor antrian unik, menyimpan keluhan, dan menampilkan nomor tersebut kepada pasien",
+            "sortOrder": 1
+          },
+          {
+            "id": 293,
+            "givenText": "pasien berada pada form ambil nomor tanpa mengisi keluhan",
+            "whenText": "pasien menekan tombol konfirmasi",
+            "thenText": "sistem menolak proses dan meminta pasien mengisi keluhan karena wajib",
+            "sortOrder": 2
+          }
+        ]
+      },
+      {
+        "id": 199,
+        "role": "Pasien",
+        "feature": "login dengan nomor HP terdaftar (pasien lama)",
+        "benefit": "menghindari pengisian data kembali",
+        "rawAiOutput": {
+          "role": "Pasien",
+          "benefit": "menghindari pengisian data kembali",
+          "feature": "login dengan nomor HP terdaftar (pasien lama)",
+          "out_of_scope": [
+            "booking antrian H-1 (hari sebelum hari H)",
+            "notifikasi WhatsApp ke pasien",
+            "pembayaran via aplikasi",
+            "penentuan urutan penyisipan ulang nomor antrian setelah tidak hadir",
+            "penentuan kebijakan penyimpanan data pasien"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem mengidentifikasi pasien, masuk ke aplikasi, dan tidak meminta data tambahan",
+              "when": "pasien memasukkan nomor HP pada layar login dan menekan tombol masuk",
+              "given": "pasien lama memiliki nomor HP yang sudah terdaftar di sistem"
+            },
+            {
+              "then": "sistem menolak login dan menampilkan pilihan untuk mendaftar akun baru",
+              "when": "pasien menekan tombol masuk",
+              "given": "pasien memasukkan nomor HP yang tidak terdaftar"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 294,
+            "givenText": "pasien lama memiliki nomor HP yang sudah terdaftar di sistem",
+            "whenText": "pasien memasukkan nomor HP pada layar login dan menekan tombol masuk",
+            "thenText": "sistem mengidentifikasi pasien, masuk ke aplikasi, dan tidak meminta data tambahan",
+            "sortOrder": 1
+          },
+          {
+            "id": 295,
+            "givenText": "pasien memasukkan nomor HP yang tidak terdaftar",
+            "whenText": "pasien menekan tombol masuk",
+            "thenText": "sistem menolak login dan menampilkan pilihan untuk mendaftar akun baru",
+            "sortOrder": 2
+          }
+        ]
+      },
+      {
+        "id": 200,
+        "role": "Pasien",
+        "feature": "mendaftar akun baru dengan mengisi nama, tanggal lahir, dan nomor HP",
+        "benefit": "memungkinkan pasien baru menggunakan layanan antrian online",
+        "rawAiOutput": {
+          "role": "Pasien",
+          "benefit": "memungkinkan pasien baru menggunakan layanan antrian online",
+          "feature": "mendaftar akun baru dengan mengisi nama, tanggal lahir, dan nomor HP",
+          "out_of_scope": [
+            "booking antrian H-1 (hari sebelum hari H)",
+            "notifikasi WhatsApp ke pasien",
+            "pembayaran via aplikasi",
+            "penentuan urutan penyisipan ulang nomor antrian setelah tidak hadir",
+            "penentuan kebijakan penyimpanan data pasien"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem membuat akun baru, mengaitkan data tersebut, dan mengarahkan pengguna ke proses ambil nomor antrian",
+              "when": "pengguna mengisi nama, tanggal lahir, serta nomor HP yang belum terdaftar dan menekan tombol daftar",
+              "given": "pengguna belum memiliki akun di sistem"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 296,
+            "givenText": "pengguna belum memiliki akun di sistem",
+            "whenText": "pengguna mengisi nama, tanggal lahir, serta nomor HP yang belum terdaftar dan menekan tombol daftar",
+            "thenText": "sistem membuat akun baru, mengaitkan data tersebut, dan mengarahkan pengguna ke proses ambil nomor antrian",
+            "sortOrder": 1
+          }
+        ]
+      },
+      {
+        "id": 201,
+        "role": "Dokter",
+        "feature": "melihat daftar pasien hari ini beserta keluhan yang diisi saat ambil nomor",
+        "benefit": "menyiapkan pelayanan sesuai keluhan pasien",
+        "rawAiOutput": {
+          "role": "Dokter",
+          "benefit": "menyiapkan pelayanan sesuai keluhan pasien",
+          "feature": "melihat daftar pasien hari ini beserta keluhan yang diisi saat ambil nomor",
+          "out_of_scope": [
+            "booking antrian H-1 (hari sebelum hari H)",
+            "notifikasi WhatsApp ke pasien",
+            "pembayaran via aplikasi",
+            "penentuan urutan penyisipan ulang nomor antrian setelah tidak hadir",
+            "penentuan kebijakan penyimpanan data pasien"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menampilkan semua nomor antrian hari itu lengkap dengan keluhan tiap pasien",
+              "when": "dokter membuka halaman daftar pasien untuk hari berjalan",
+              "given": "dokter telah masuk ke sistem"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 297,
+            "givenText": "dokter telah masuk ke sistem",
+            "whenText": "dokter membuka halaman daftar pasien untuk hari berjalan",
+            "thenText": "sistem menampilkan semua nomor antrian hari itu lengkap dengan keluhan tiap pasien",
+            "sortOrder": 1
+          }
+        ]
+      },
+      {
+        "id": 202,
+        "role": "Resepsionis",
+        "feature": "memanggil nomor antrian berikutnya dan menampilkan nomor yang dipanggil secara live di HP pasien",
+        "benefit": "mempercepat proses panggilan dan mengurangi kebingungan pasien",
+        "rawAiOutput": {
+          "role": "Resepsionis",
+          "benefit": "mempercepat proses panggilan dan mengurangi kebingungan pasien",
+          "feature": "memanggil nomor antrian berikutnya dan menampilkan nomor yang dipanggil secara live di HP pasien",
+          "out_of_scope": [
+            "booking antrian H-1 (hari sebelum hari H)",
+            "notifikasi WhatsApp ke pasien",
+            "pembayaran via aplikasi",
+            "penentuan urutan penyisipan ulang nomor antrian setelah tidak hadir",
+            "penentuan kebijakan penyimpanan data pasien"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menandai nomor tersebut sebagai dipanggil dan mengirimkan informasi nomor secara real‑time ke aplikasi HP pasien terkait",
+              "when": "resepsionis menekan tombol panggil nomor berikutnya",
+              "given": "resepsionis berada di panel antrian dan ada nomor antrian dalam daftar menunggu"
+            },
+            {
+              "then": "aplikasi menampilkan nomor yang sedang dipanggil secara live",
+              "when": "aplikasi menerima pembaruan nomor yang dipanggil",
+              "given": "pasien telah dipanggil dan membuka aplikasi"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 298,
+            "givenText": "resepsionis berada di panel antrian dan ada nomor antrian dalam daftar menunggu",
+            "whenText": "resepsionis menekan tombol panggil nomor berikutnya",
+            "thenText": "sistem menandai nomor tersebut sebagai dipanggil dan mengirimkan informasi nomor secara real‑time ke aplikasi HP pasien terkait",
+            "sortOrder": 1
+          },
+          {
+            "id": 299,
+            "givenText": "pasien telah dipanggil dan membuka aplikasi",
+            "whenText": "aplikasi menerima pembaruan nomor yang dipanggil",
+            "thenText": "aplikasi menampilkan nomor yang sedang dipanggil secara live",
+            "sortOrder": 2
+          }
+        ]
+      },
+      {
+        "id": 203,
+        "role": "Resepsionis",
+        "feature": "melewati nomor antrian setelah dipanggil dua kali tanpa kedatangan pasien",
+        "benefit": "menjaga kelancaran alur antrian",
+        "rawAiOutput": {
+          "role": "Resepsionis",
+          "benefit": "menjaga kelancaran alur antrian",
+          "feature": "melewati nomor antrian setelah dipanggil dua kali tanpa kedatangan pasien",
+          "out_of_scope": [
+            "booking antrian H-1 (hari sebelum hari H)",
+            "notifikasi WhatsApp ke pasien",
+            "pembayaran via aplikasi",
+            "penentuan urutan penyisipan ulang nomor antrian setelah tidak hadir",
+            "penentuan kebijakan penyimpanan data pasien"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem mengeluarkan nomor dari antrian aktif dan melanjutkan pemanggilan ke nomor berikutnya",
+              "when": "resepsionis menandai nomor tersebut sebagai tidak hadir",
+              "given": "suatu nomor antrian telah dipanggil dua kali dan belum ada konfirmasi kedatangan dari pasien"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 300,
+            "givenText": "suatu nomor antrian telah dipanggil dua kali dan belum ada konfirmasi kedatangan dari pasien",
+            "whenText": "resepsionis menandai nomor tersebut sebagai tidak hadir",
+            "thenText": "sistem mengeluarkan nomor dari antrian aktif dan melanjutkan pemanggilan ke nomor berikutnya",
+            "sortOrder": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "runIndex": 5,
+    "newTranscriptId": 40,
+    "status": "completed",
+    "durationMs": 37719,
+    "model": "openai/gpt-oss-120b",
+    "temperature": 1,
+    "errorMessage": null,
+    "storyCount": 8,
+    "acCountPerStory": [
+      2,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "zeroAcStoryCount": 0,
+    "hasTemplatePrefix": false,
+    "templatePrefixStoriesCount": 0,
+    "scopeLeakWords": [],
+    "scopeLeakLocations": [],
+    "hasScopeLeak": false,
+    "detailsDetectedWords": [
+      "tombol",
+      "halaman"
+    ],
+    "detailsCountAC": 5,
+    "roleFeatureList": [
+      "pasien: mengambil nomor antrian melalui aplikasi HP pada hari kunjungan mulai jam 6 pagi",
+      "dokter: melihat daftar pasien hari ini beserta keluhan yang diisi",
+      "resepsionis: memanggil nomor antrian berikutnya",
+      "pasien: melihat nomor antrian yang sedang dipanggil secara real‑time di aplikasi",
+      "resepsionis: melewatkan nomor antrian setelah dipanggil dua kali tanpa kedatangan",
+      "resepsionis: menyisipkan kembali nomor antrian pasien yang sudah dilewati ketika pasien melapor ke resepsionis",
+      "pasien: login ke aplikasi menggunakan nomor HP terdaftar untuk pasien lama",
+      "pasien: mendaftar akun baru dengan mengisi nama, tanggal lahir, dan nomor HP"
+    ],
+    "outOfScopeList": [
+      "Notifikasi WhatsApp ke pasien (fase 2)",
+      "Penentuan urutan penyisipan kembali nomor antrian yang dilewati (belum diputuskan)",
+      "Pembayaran melalui aplikasi (tetap di kasir)",
+      "Kebijakan penyimpanan data pasien (privacy)",
+      "Penggunaan websocket vs refresh berkala (keputusan teknis)"
+    ],
+    "stories": [
+      {
+        "id": 204,
+        "role": "pasien",
+        "feature": "mengambil nomor antrian melalui aplikasi HP pada hari kunjungan mulai jam 6 pagi",
+        "benefit": "mengurangi kepadatan di ruang tunggu",
+        "rawAiOutput": {
+          "role": "pasien",
+          "benefit": "mengurangi kepadatan di ruang tunggu",
+          "feature": "mengambil nomor antrian melalui aplikasi HP pada hari kunjungan mulai jam 6 pagi",
+          "out_of_scope": [
+            "Notifikasi WhatsApp ke pasien (fase 2)",
+            "Penentuan urutan penyisipan kembali nomor antrian yang dilewati (belum diputuskan)",
+            "Pembayaran melalui aplikasi (tetap di kasir)",
+            "Kebijakan penyimpanan data pasien (privacy)",
+            "Penggunaan websocket vs refresh berkala (keputusan teknis)"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menghasilkan nomor antrian unik, menampilkan nomor tersebut, dan menyimpan keluhan yang diberikan",
+              "when": "pasien menekan tombol ambil nomor dan mengisi keluhan (maksimum 200 karakter)",
+              "given": "pasien membuka aplikasi setelah jam 6 pagi pada hari H"
+            },
+            {
+              "then": "sistem menolak penyimpanan dan menampilkan pesan bahwa keluhan tidak boleh melebihi 200 karakter",
+              "when": "pasien mencoba menyimpan keluhan",
+              "given": "pasien mengisi keluhan lebih dari 200 karakter"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 301,
+            "givenText": "pasien membuka aplikasi setelah jam 6 pagi pada hari H",
+            "whenText": "pasien menekan tombol ambil nomor dan mengisi keluhan (maksimum 200 karakter)",
+            "thenText": "sistem menghasilkan nomor antrian unik, menampilkan nomor tersebut, dan menyimpan keluhan yang diberikan",
+            "sortOrder": 1
+          },
+          {
+            "id": 302,
+            "givenText": "pasien mengisi keluhan lebih dari 200 karakter",
+            "whenText": "pasien mencoba menyimpan keluhan",
+            "thenText": "sistem menolak penyimpanan dan menampilkan pesan bahwa keluhan tidak boleh melebihi 200 karakter",
+            "sortOrder": 2
+          }
+        ]
+      },
+      {
+        "id": 205,
+        "role": "dokter",
+        "feature": "melihat daftar pasien hari ini beserta keluhan yang diisi",
+        "benefit": "memudahkan persiapan konsultasi",
+        "rawAiOutput": {
+          "role": "dokter",
+          "benefit": "memudahkan persiapan konsultasi",
+          "feature": "melihat daftar pasien hari ini beserta keluhan yang diisi",
+          "out_of_scope": [
+            "Notifikasi WhatsApp ke pasien (fase 2)",
+            "Penentuan urutan penyisipan kembali nomor antrian yang dilewati (belum diputuskan)",
+            "Pembayaran melalui aplikasi (tetap di kasir)",
+            "Kebijakan penyimpanan data pasien (privacy)",
+            "Penggunaan websocket vs refresh berkala (keputusan teknis)"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menampilkan list pasien yang telah mengambil nomor antrian lengkap dengan keluhan masing‑masing",
+              "when": "dokter memilih menu \"Daftar Pasien Hari Ini\"",
+              "given": "dokter sudah masuk ke aplikasi pada hari kerja"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 303,
+            "givenText": "dokter sudah masuk ke aplikasi pada hari kerja",
+            "whenText": "dokter memilih menu \"Daftar Pasien Hari Ini\"",
+            "thenText": "sistem menampilkan list pasien yang telah mengambil nomor antrian lengkap dengan keluhan masing‑masing",
+            "sortOrder": 1
+          }
+        ]
+      },
+      {
+        "id": 206,
+        "role": "resepsionis",
+        "feature": "memanggil nomor antrian berikutnya",
+        "benefit": "mengelola alur antrian secara real‑time",
+        "rawAiOutput": {
+          "role": "resepsionis",
+          "benefit": "mengelola alur antrian secara real‑time",
+          "feature": "memanggil nomor antrian berikutnya",
+          "out_of_scope": [
+            "Notifikasi WhatsApp ke pasien (fase 2)",
+            "Penentuan urutan penyisipan kembali nomor antrian yang dilewati (belum diputuskan)",
+            "Pembayaran melalui aplikasi (tetap di kasir)",
+            "Kebijakan penyimpanan data pasien (privacy)",
+            "Penggunaan websocket vs refresh berkala (keputusan teknis)"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menandai nomor tersebut sebagai dipanggil dan mengirimkan informasi nomor yang dipanggil ke semua perangkat pasien",
+              "when": "resepsionis menekan tombol \"Panggil Berikutnya\"",
+              "given": "terdapat nomor antrian yang belum dipanggil"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 304,
+            "givenText": "terdapat nomor antrian yang belum dipanggil",
+            "whenText": "resepsionis menekan tombol \"Panggil Berikutnya\"",
+            "thenText": "sistem menandai nomor tersebut sebagai dipanggil dan mengirimkan informasi nomor yang dipanggil ke semua perangkat pasien",
+            "sortOrder": 1
+          }
+        ]
+      },
+      {
+        "id": 207,
+        "role": "pasien",
+        "feature": "melihat nomor antrian yang sedang dipanggil secara real‑time di aplikasi",
+        "benefit": "mengetahui giliran tanpa harus menunggu di ruang tunggu",
+        "rawAiOutput": {
+          "role": "pasien",
+          "benefit": "mengetahui giliran tanpa harus menunggu di ruang tunggu",
+          "feature": "melihat nomor antrian yang sedang dipanggil secara real‑time di aplikasi",
+          "out_of_scope": [
+            "Notifikasi WhatsApp ke pasien (fase 2)",
+            "Penentuan urutan penyisipan kembali nomor antrian yang dilewati (belum diputuskan)",
+            "Pembayaran melalui aplikasi (tetap di kasir)",
+            "Kebijakan penyimpanan data pasien (privacy)",
+            "Penggunaan websocket vs refresh berkala (keputusan teknis)"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "aplikasi menampilkan nomor yang sedang dipanggil secara otomatis kepada pasien",
+              "when": "nomor antrian dipanggil oleh resepsionis",
+              "given": "pasien sudah memiliki nomor antrian dalam aplikasi"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 305,
+            "givenText": "pasien sudah memiliki nomor antrian dalam aplikasi",
+            "whenText": "nomor antrian dipanggil oleh resepsionis",
+            "thenText": "aplikasi menampilkan nomor yang sedang dipanggil secara otomatis kepada pasien",
+            "sortOrder": 1
+          }
+        ]
+      },
+      {
+        "id": 208,
+        "role": "resepsionis",
+        "feature": "melewatkan nomor antrian setelah dipanggil dua kali tanpa kedatangan",
+        "benefit": "mempercepat alur antrian",
+        "rawAiOutput": {
+          "role": "resepsionis",
+          "benefit": "mempercepat alur antrian",
+          "feature": "melewatkan nomor antrian setelah dipanggil dua kali tanpa kedatangan",
+          "out_of_scope": [
+            "Notifikasi WhatsApp ke pasien (fase 2)",
+            "Penentuan urutan penyisipan kembali nomor antrian yang dilewati (belum diputuskan)",
+            "Pembayaran melalui aplikasi (tetap di kasir)",
+            "Kebijakan penyimpanan data pasien (privacy)",
+            "Penggunaan websocket vs refresh berkala (keputusan teknis)"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menandai nomor tersebut sebagai dilewati dan melanjutkan ke nomor antrian berikutnya",
+              "when": "resepsionis menekan tombol \"Lewati\" atau sistem otomatis mendeteksi tidak ada kedatangan",
+              "given": "nomor antrian telah dipanggil dua kali berturut‑turut dan tidak ada pasien yang muncul"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 306,
+            "givenText": "nomor antrian telah dipanggil dua kali berturut‑turut dan tidak ada pasien yang muncul",
+            "whenText": "resepsionis menekan tombol \"Lewati\" atau sistem otomatis mendeteksi tidak ada kedatangan",
+            "thenText": "sistem menandai nomor tersebut sebagai dilewati dan melanjutkan ke nomor antrian berikutnya",
+            "sortOrder": 1
+          }
+        ]
+      },
+      {
+        "id": 209,
+        "role": "resepsionis",
+        "feature": "menyisipkan kembali nomor antrian pasien yang sudah dilewati ketika pasien melapor ke resepsionis",
+        "benefit": "memungkinkan pasien yang terlambat tetap dilayani",
+        "rawAiOutput": {
+          "role": "resepsionis",
+          "benefit": "memungkinkan pasien yang terlambat tetap dilayani",
+          "feature": "menyisipkan kembali nomor antrian pasien yang sudah dilewati ketika pasien melapor ke resepsionis",
+          "out_of_scope": [
+            "Notifikasi WhatsApp ke pasien (fase 2)",
+            "Penentuan urutan penyisipan kembali nomor antrian yang dilewati (belum diputuskan)",
+            "Pembayaran melalui aplikasi (tetap di kasir)",
+            "Kebijakan penyimpanan data pasien (privacy)",
+            "Penggunaan websocket vs refresh berkala (keputusan teknis)"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "nomor tersebut muncul kembali dalam daftar antrian dan dapat dipanggil selanjutnya",
+              "when": "resepsionis memasukkan kembali nomor pasien ke dalam antrian",
+              "given": "pasien yang nomor antrinya sebelumnya dilewati melapor ke resepsionis"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 307,
+            "givenText": "pasien yang nomor antrinya sebelumnya dilewati melapor ke resepsionis",
+            "whenText": "resepsionis memasukkan kembali nomor pasien ke dalam antrian",
+            "thenText": "nomor tersebut muncul kembali dalam daftar antrian dan dapat dipanggil selanjutnya",
+            "sortOrder": 1
+          }
+        ]
+      },
+      {
+        "id": 210,
+        "role": "pasien",
+        "feature": "login ke aplikasi menggunakan nomor HP terdaftar untuk pasien lama",
+        "benefit": "mempercepat proses antrian",
+        "rawAiOutput": {
+          "role": "pasien",
+          "benefit": "mempercepat proses antrian",
+          "feature": "login ke aplikasi menggunakan nomor HP terdaftar untuk pasien lama",
+          "out_of_scope": [
+            "Notifikasi WhatsApp ke pasien (fase 2)",
+            "Penentuan urutan penyisipan kembali nomor antrian yang dilewati (belum diputuskan)",
+            "Pembayaran melalui aplikasi (tetap di kasir)",
+            "Kebijakan penyimpanan data pasien (privacy)",
+            "Penggunaan websocket vs refresh berkala (keputusan teknis)"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem mengautentikasi pasien dan mengarahkan ke halaman utama tanpa meminta pengisian data diri lagi",
+              "when": "pasien memasukkan nomor HP pada layar login dan menekan tombol masuk",
+              "given": "pasien lama sudah terdaftar dengan nomor HP di sistem"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 308,
+            "givenText": "pasien lama sudah terdaftar dengan nomor HP di sistem",
+            "whenText": "pasien memasukkan nomor HP pada layar login dan menekan tombol masuk",
+            "thenText": "sistem mengautentikasi pasien dan mengarahkan ke halaman utama tanpa meminta pengisian data diri lagi",
+            "sortOrder": 1
+          }
+        ]
+      },
+      {
+        "id": 211,
+        "role": "pasien",
+        "feature": "mendaftar akun baru dengan mengisi nama, tanggal lahir, dan nomor HP",
+        "benefit": "memungkinkan pasien baru mengambil nomor antrian",
+        "rawAiOutput": {
+          "role": "pasien",
+          "benefit": "memungkinkan pasien baru mengambil nomor antrian",
+          "feature": "mendaftar akun baru dengan mengisi nama, tanggal lahir, dan nomor HP",
+          "out_of_scope": [
+            "Notifikasi WhatsApp ke pasien (fase 2)",
+            "Penentuan urutan penyisipan kembali nomor antrian yang dilewati (belum diputuskan)",
+            "Pembayaran melalui aplikasi (tetap di kasir)",
+            "Kebijakan penyimpanan data pasien (privacy)",
+            "Penggunaan websocket vs refresh berkala (keputusan teknis)"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem membuat akun baru untuk calon pasien dan mengarahkan ke halaman ambil nomor antrian",
+              "when": "calon pasien mengisi nama, tanggal lahir, dan nomor HP kemudian menyimpan data",
+              "given": "calon pasien belum memiliki akun di sistem"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 309,
+            "givenText": "calon pasien belum memiliki akun di sistem",
+            "whenText": "calon pasien mengisi nama, tanggal lahir, dan nomor HP kemudian menyimpan data",
+            "thenText": "sistem membuat akun baru untuk calon pasien dan mengarahkan ke halaman ambil nomor antrian",
+            "sortOrder": 1
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,1090 @@
+[
+  {
+    "runIndex": 1,
+    "newTranscriptId": 41,
+    "status": "completed",
+    "durationMs": 26064,
+    "model": "openai/gpt-oss-120b",
+    "temperature": 0,
+    "errorMessage": null,
+    "storyCount": 5,
+    "acCountPerStory": [
+      1,
+      1,
+      2,
+      1,
+      1
+    ],
+    "zeroAcStoryCount": 0,
+    "hasTemplatePrefix": false,
+    "templatePrefixStoriesCount": 0,
+    "scopeLeakWords": [],
+    "scopeLeakLocations": [],
+    "hasScopeLeak": false,
+    "detailsDetectedWords": [
+      "tombol",
+      "notifikasi"
+    ],
+    "detailsCountAC": 2,
+    "roleFeatureList": [
+      "pustakawan: mencatat peminjaman buku dengan memindai kartu mahasiswa dan barcode buku",
+      "mahasiswa: mencari buku melalui aplikasi HP berdasarkan judul atau pengarang dan melihat status ketersediaan",
+      "mahasiswa: memperpanjang peminjaman buku secara mandiri hingga dua kali per pinjaman",
+      "mahasiswa: melihat jumlah denda keterlambatan pada halaman pinjaman saya",
+      "pustakawan: mencari data mahasiswa dengan memasukkan NIM jika kartu hilang"
+    ],
+    "outOfScopeList": [
+      "fitur reservasi buku",
+      "pencarian buku berdasarkan kategori"
+    ],
+    "stories": [
+      {
+        "id": 212,
+        "role": "pustakawan",
+        "feature": "mencatat peminjaman buku dengan memindai kartu mahasiswa dan barcode buku",
+        "benefit": "mempercepat proses peminjaman dan mengurangi kesalahan pencatatan",
+        "rawAiOutput": {
+          "role": "pustakawan",
+          "benefit": "mempercepat proses peminjaman dan mengurangi kesalahan pencatatan",
+          "feature": "mencatat peminjaman buku dengan memindai kartu mahasiswa dan barcode buku",
+          "out_of_scope": [
+            "fitur reservasi buku",
+            "pencarian buku berdasarkan kategori"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem mencatat peminjaman dengan tanggal pinjam dan menandai buku sebagai dipinjam",
+              "when": "pustakawan memindai kartu mahasiswa lalu memindai barcode buku",
+              "given": "pustakawan berada di modul peminjaman dan memiliki kartu mahasiswa serta buku dengan barcode"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 310,
+            "givenText": "pustakawan berada di modul peminjaman dan memiliki kartu mahasiswa serta buku dengan barcode",
+            "whenText": "pustakawan memindai kartu mahasiswa lalu memindai barcode buku",
+            "thenText": "sistem mencatat peminjaman dengan tanggal pinjam dan menandai buku sebagai dipinjam",
+            "sortOrder": 1
+          }
+        ]
+      },
+      {
+        "id": 213,
+        "role": "mahasiswa",
+        "feature": "mencari buku melalui aplikasi HP berdasarkan judul atau pengarang dan melihat status ketersediaan",
+        "benefit": "menemukan buku yang diinginkan dengan mudah",
+        "rawAiOutput": {
+          "role": "mahasiswa",
+          "benefit": "menemukan buku yang diinginkan dengan mudah",
+          "feature": "mencari buku melalui aplikasi HP berdasarkan judul atau pengarang dan melihat status ketersediaan",
+          "out_of_scope": [
+            "fitur reservasi buku",
+            "pencarian buku berdasarkan kategori"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menampilkan daftar buku yang cocok beserta status tersedia atau sedang dipinjam",
+              "when": "mahasiswa memasukkan judul atau nama pengarang dan menekan tombol cari",
+              "given": "mahasiswa membuka aplikasi pencarian buku"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 311,
+            "givenText": "mahasiswa membuka aplikasi pencarian buku",
+            "whenText": "mahasiswa memasukkan judul atau nama pengarang dan menekan tombol cari",
+            "thenText": "sistem menampilkan daftar buku yang cocok beserta status tersedia atau sedang dipinjam",
+            "sortOrder": 1
+          }
+        ]
+      },
+      {
+        "id": 214,
+        "role": "mahasiswa",
+        "feature": "memperpanjang peminjaman buku secara mandiri hingga dua kali per pinjaman",
+        "benefit": "tidak perlu datang ke perpustakaan untuk perpanjangan",
+        "rawAiOutput": {
+          "role": "mahasiswa",
+          "benefit": "tidak perlu datang ke perpustakaan untuk perpanjangan",
+          "feature": "memperpanjang peminjaman buku secara mandiri hingga dua kali per pinjaman",
+          "out_of_scope": [
+            "fitur reservasi buku",
+            "pencarian buku berdasarkan kategori"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menambah tanggal kembali satu periode dan mencatat bahwa perpanjangan telah dilakukan",
+              "when": "mahasiswa memilih perpanjang pinjaman pada halaman pinjaman saya",
+              "given": "mahasiswa memiliki pinjaman buku yang belum mencapai batas perpanjangan dua kali"
+            },
+            {
+              "then": "sistem menolak perpanjangan dan memberi notifikasi bahwa perpanjangan tidak dapat dilakukan lagi",
+              "when": "mahasiswa mencoba memperpanjang lagi",
+              "given": "mahasiswa sudah memperpanjang pinjaman dua kali"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 312,
+            "givenText": "mahasiswa memiliki pinjaman buku yang belum mencapai batas perpanjangan dua kali",
+            "whenText": "mahasiswa memilih perpanjang pinjaman pada halaman pinjaman saya",
+            "thenText": "sistem menambah tanggal kembali satu periode dan mencatat bahwa perpanjangan telah dilakukan",
+            "sortOrder": 1
+          },
+          {
+            "id": 313,
+            "givenText": "mahasiswa sudah memperpanjang pinjaman dua kali",
+            "whenText": "mahasiswa mencoba memperpanjang lagi",
+            "thenText": "sistem menolak perpanjangan dan memberi notifikasi bahwa perpanjangan tidak dapat dilakukan lagi",
+            "sortOrder": 2
+          }
+        ]
+      },
+      {
+        "id": 215,
+        "role": "mahasiswa",
+        "feature": "melihat jumlah denda keterlambatan pada halaman pinjaman saya",
+        "benefit": "mengetahui kewajiban pembayaran denda",
+        "rawAiOutput": {
+          "role": "mahasiswa",
+          "benefit": "mengetahui kewajiban pembayaran denda",
+          "feature": "melihat jumlah denda keterlambatan pada halaman pinjaman saya",
+          "out_of_scope": [
+            "fitur reservasi buku",
+            "pencarian buku berdasarkan kategori"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menampilkan total denda yang dihitung 1000 rupiah per hari per buku yang terlambat",
+              "when": "mahasiswa membuka halaman pinjaman saya",
+              "given": "mahasiswa memiliki pinjaman yang telah melewati tanggal kembali"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 314,
+            "givenText": "mahasiswa memiliki pinjaman yang telah melewati tanggal kembali",
+            "whenText": "mahasiswa membuka halaman pinjaman saya",
+            "thenText": "sistem menampilkan total denda yang dihitung 1000 rupiah per hari per buku yang terlambat",
+            "sortOrder": 1
+          }
+        ]
+      },
+      {
+        "id": 216,
+        "role": "pustakawan",
+        "feature": "mencari data mahasiswa dengan memasukkan NIM jika kartu hilang",
+        "benefit": "memungkinkan peminjaman tetap diproses meski kartu tidak ada",
+        "rawAiOutput": {
+          "role": "pustakawan",
+          "benefit": "memungkinkan peminjaman tetap diproses meski kartu tidak ada",
+          "feature": "mencari data mahasiswa dengan memasukkan NIM jika kartu hilang",
+          "out_of_scope": [
+            "fitur reservasi buku",
+            "pencarian buku berdasarkan kategori"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menampilkan data mahasiswa sehingga pustakawan dapat melanjutkan pencatatan peminjaman",
+              "when": "pustakawan memasukkan NIM mahasiswa ke dalam sistem",
+              "given": "pustakawan berada di modul peminjaman dan kartu mahasiswa tidak dapat dipindai karena hilang"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 315,
+            "givenText": "pustakawan berada di modul peminjaman dan kartu mahasiswa tidak dapat dipindai karena hilang",
+            "whenText": "pustakawan memasukkan NIM mahasiswa ke dalam sistem",
+            "thenText": "sistem menampilkan data mahasiswa sehingga pustakawan dapat melanjutkan pencatatan peminjaman",
+            "sortOrder": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "runIndex": 2,
+    "newTranscriptId": 42,
+    "status": "completed",
+    "durationMs": 31282,
+    "model": "openai/gpt-oss-120b",
+    "temperature": 0,
+    "errorMessage": null,
+    "storyCount": 5,
+    "acCountPerStory": [
+      1,
+      1,
+      2,
+      1,
+      1
+    ],
+    "zeroAcStoryCount": 0,
+    "hasTemplatePrefix": false,
+    "templatePrefixStoriesCount": 0,
+    "scopeLeakWords": [],
+    "scopeLeakLocations": [],
+    "hasScopeLeak": false,
+    "detailsDetectedWords": [
+      "notifikasi"
+    ],
+    "detailsCountAC": 1,
+    "roleFeatureList": [
+      "pustakawan: mencatat peminjaman buku dengan scan kartu mahasiswa dan scan barcode buku",
+      "mahasiswa: mencari buku lewat aplikasi seluler berdasarkan judul dan pengarang",
+      "mahasiswa: memperpanjang pinjaman buku secara mandiri dengan batas maksimal dua kali perpanjangan",
+      "mahasiswa: melihat jumlah denda keterlambatan pada halaman pinjaman",
+      "pustakawan: mencari data mahasiswa menggunakan NIM untuk menggantikan kartu hilang"
+    ],
+    "outOfScopeList": [
+      "pencarian buku berdasarkan kategori",
+      "fitur reservasi buku"
+    ],
+    "stories": [
+      {
+        "id": 217,
+        "role": "pustakawan",
+        "feature": "mencatat peminjaman buku dengan scan kartu mahasiswa dan scan barcode buku",
+        "benefit": "mempercepat proses peminjaman dan mengurangi pencatatan manual",
+        "rawAiOutput": {
+          "role": "pustakawan",
+          "benefit": "mempercepat proses peminjaman dan mengurangi pencatatan manual",
+          "feature": "mencatat peminjaman buku dengan scan kartu mahasiswa dan scan barcode buku",
+          "out_of_scope": [
+            "pencarian buku berdasarkan kategori",
+            "fitur reservasi buku"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem mencatat transaksi peminjaman dan menandai buku sebagai dipinjam",
+              "when": "pustakawan memindai kartu mahasiswa lalu memindai barcode buku",
+              "given": "pustakawan berada di modul peminjaman dan memiliki kartu mahasiswa serta buku"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 316,
+            "givenText": "pustakawan berada di modul peminjaman dan memiliki kartu mahasiswa serta buku",
+            "whenText": "pustakawan memindai kartu mahasiswa lalu memindai barcode buku",
+            "thenText": "sistem mencatat transaksi peminjaman dan menandai buku sebagai dipinjam",
+            "sortOrder": 1
+          }
+        ]
+      },
+      {
+        "id": 218,
+        "role": "mahasiswa",
+        "feature": "mencari buku lewat aplikasi seluler berdasarkan judul dan pengarang",
+        "benefit": "memudahkan menemukan buku yang tersedia",
+        "rawAiOutput": {
+          "role": "mahasiswa",
+          "benefit": "memudahkan menemukan buku yang tersedia",
+          "feature": "mencari buku lewat aplikasi seluler berdasarkan judul dan pengarang",
+          "out_of_scope": [
+            "pencarian buku berdasarkan kategori",
+            "fitur reservasi buku"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menampilkan daftar buku yang cocok beserta status tersedia atau dipinjam",
+              "when": "mahasiswa memasukkan kata kunci judul atau pengarang",
+              "given": "mahasiswa membuka aplikasi perpustakaan di HP"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 317,
+            "givenText": "mahasiswa membuka aplikasi perpustakaan di HP",
+            "whenText": "mahasiswa memasukkan kata kunci judul atau pengarang",
+            "thenText": "sistem menampilkan daftar buku yang cocok beserta status tersedia atau dipinjam",
+            "sortOrder": 1
+          }
+        ]
+      },
+      {
+        "id": 219,
+        "role": "mahasiswa",
+        "feature": "memperpanjang pinjaman buku secara mandiri dengan batas maksimal dua kali perpanjangan",
+        "benefit": "mempercepat penyelesaian pinjaman tanpa harus ke perpustakaan",
+        "rawAiOutput": {
+          "role": "mahasiswa",
+          "benefit": "mempercepat penyelesaian pinjaman tanpa harus ke perpustakaan",
+          "feature": "memperpanjang pinjaman buku secara mandiri dengan batas maksimal dua kali perpanjangan",
+          "out_of_scope": [
+            "pencarian buku berdasarkan kategori",
+            "fitur reservasi buku"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menambahkan tanggal kembali sesuai kebijakan dan mencatat satu perpanjangan",
+              "when": "mahasiswa memilih perpanjang pinjaman",
+              "given": "mahasiswa memiliki pinjaman buku dengan jumlah perpanjangan kurang dari dua"
+            },
+            {
+              "then": "sistem menolak perpanjangan dan menampilkan notifikasi tidak dapat memperpanjang lebih dari dua kali",
+              "when": "mahasiswa memilih perpanjang pinjaman",
+              "given": "mahasiswa memiliki pinjaman buku dengan dua perpanjangan sebelumnya"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 318,
+            "givenText": "mahasiswa memiliki pinjaman buku dengan jumlah perpanjangan kurang dari dua",
+            "whenText": "mahasiswa memilih perpanjang pinjaman",
+            "thenText": "sistem menambahkan tanggal kembali sesuai kebijakan dan mencatat satu perpanjangan",
+            "sortOrder": 1
+          },
+          {
+            "id": 319,
+            "givenText": "mahasiswa memiliki pinjaman buku dengan dua perpanjangan sebelumnya",
+            "whenText": "mahasiswa memilih perpanjang pinjaman",
+            "thenText": "sistem menolak perpanjangan dan menampilkan notifikasi tidak dapat memperpanjang lebih dari dua kali",
+            "sortOrder": 2
+          }
+        ]
+      },
+      {
+        "id": 220,
+        "role": "mahasiswa",
+        "feature": "melihat jumlah denda keterlambatan pada halaman pinjaman",
+        "benefit": "mengetahui jumlah utang denda secara transparan",
+        "rawAiOutput": {
+          "role": "mahasiswa",
+          "benefit": "mengetahui jumlah utang denda secara transparan",
+          "feature": "melihat jumlah denda keterlambatan pada halaman pinjaman",
+          "out_of_scope": [
+            "pencarian buku berdasarkan kategori",
+            "fitur reservasi buku"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menghitung denda 1000 rupiah per hari per buku dan menampilkan total denda pada halaman",
+              "when": "terdapat buku yang terlambat dikembalikan",
+              "given": "mahasiswa membuka halaman pinjaman saya"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 320,
+            "givenText": "mahasiswa membuka halaman pinjaman saya",
+            "whenText": "terdapat buku yang terlambat dikembalikan",
+            "thenText": "sistem menghitung denda 1000 rupiah per hari per buku dan menampilkan total denda pada halaman",
+            "sortOrder": 1
+          }
+        ]
+      },
+      {
+        "id": 221,
+        "role": "pustakawan",
+        "feature": "mencari data mahasiswa menggunakan NIM untuk menggantikan kartu hilang",
+        "benefit": "memungkinkan melanjutkan proses peminjaman meski kartu tidak ada",
+        "rawAiOutput": {
+          "role": "pustakawan",
+          "benefit": "memungkinkan melanjutkan proses peminjaman meski kartu tidak ada",
+          "feature": "mencari data mahasiswa menggunakan NIM untuk menggantikan kartu hilang",
+          "out_of_scope": [
+            "pencarian buku berdasarkan kategori",
+            "fitur reservasi buku"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menampilkan data mahasiswa terkait untuk diproses peminjaman",
+              "when": "pustakawan memasukkan NIM mahasiswa yang kartu nya hilang",
+              "given": "pustakawan berada di modul pencarian anggota"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 321,
+            "givenText": "pustakawan berada di modul pencarian anggota",
+            "whenText": "pustakawan memasukkan NIM mahasiswa yang kartu nya hilang",
+            "thenText": "sistem menampilkan data mahasiswa terkait untuk diproses peminjaman",
+            "sortOrder": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "runIndex": 3,
+    "newTranscriptId": 43,
+    "status": "completed",
+    "durationMs": 27752,
+    "model": "openai/gpt-oss-120b",
+    "temperature": 0,
+    "errorMessage": null,
+    "storyCount": 5,
+    "acCountPerStory": [
+      1,
+      1,
+      2,
+      1,
+      1
+    ],
+    "zeroAcStoryCount": 0,
+    "hasTemplatePrefix": false,
+    "templatePrefixStoriesCount": 0,
+    "scopeLeakWords": [
+      "pesan"
+    ],
+    "scopeLeakLocations": [
+      "Story 3 AC 2 (then): \"pesan\""
+    ],
+    "hasScopeLeak": true,
+    "detailsDetectedWords": [
+      "tombol"
+    ],
+    "detailsCountAC": 1,
+    "roleFeatureList": [
+      "pustakawan: mencatat peminjaman buku dengan scan kartu mahasiswa dan barcode buku",
+      "mahasiswa: mencari buku berdasarkan judul atau pengarang melalui aplikasi HP dan melihat status ketersediaan",
+      "mahasiswa: memperpanjang masa pinjam buku secara mandiri hingga maksimum dua kali per buku",
+      "sistem: menghitung denda keterlambatan secara otomatis sebesar seribu rupiah per hari per buku dan menampilkannya pada halaman pinjaman mahasiswa",
+      "pustakawan: mencari data mahasiswa dengan memasukkan NIM ketika kartu mahasiswa hilang"
+    ],
+    "outOfScopeList": [
+      "pencarian buku berdasarkan kategori",
+      "fitur reservasi buku"
+    ],
+    "stories": [
+      {
+        "id": 222,
+        "role": "pustakawan",
+        "feature": "mencatat peminjaman buku dengan scan kartu mahasiswa dan barcode buku",
+        "benefit": "mempercepat dan mengurangi kesalahan pencatatan manual",
+        "rawAiOutput": {
+          "role": "pustakawan",
+          "benefit": "mempercepat dan mengurangi kesalahan pencatatan manual",
+          "feature": "mencatat peminjaman buku dengan scan kartu mahasiswa dan barcode buku",
+          "out_of_scope": [
+            "pencarian buku berdasarkan kategori",
+            "fitur reservasi buku"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menyimpan data peminjaman (mahasiswa, buku, tanggal pinjam) dan menandai buku sebagai dipinjam",
+              "when": "pustakawan melakukan scan kartu mahasiswa lalu scan barcode buku",
+              "given": "pustakawan berada pada modul peminjaman dan kartu mahasiswa serta barcode buku dapat dipindai"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 322,
+            "givenText": "pustakawan berada pada modul peminjaman dan kartu mahasiswa serta barcode buku dapat dipindai",
+            "whenText": "pustakawan melakukan scan kartu mahasiswa lalu scan barcode buku",
+            "thenText": "sistem menyimpan data peminjaman (mahasiswa, buku, tanggal pinjam) dan menandai buku sebagai dipinjam",
+            "sortOrder": 1
+          }
+        ]
+      },
+      {
+        "id": 223,
+        "role": "mahasiswa",
+        "feature": "mencari buku berdasarkan judul atau pengarang melalui aplikasi HP dan melihat status ketersediaan",
+        "benefit": "memudahkan menemukan buku yang diinginkan",
+        "rawAiOutput": {
+          "role": "mahasiswa",
+          "benefit": "memudahkan menemukan buku yang diinginkan",
+          "feature": "mencari buku berdasarkan judul atau pengarang melalui aplikasi HP dan melihat status ketersediaan",
+          "out_of_scope": [
+            "pencarian buku berdasarkan kategori",
+            "fitur reservasi buku"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menampilkan daftar buku yang cocok beserta status tersedia atau sedang dipinjam",
+              "when": "mahasiswa memasukkan judul atau nama pengarang dan menekan tombol cari",
+              "given": "mahasiswa membuka aplikasi pencarian buku"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 323,
+            "givenText": "mahasiswa membuka aplikasi pencarian buku",
+            "whenText": "mahasiswa memasukkan judul atau nama pengarang dan menekan tombol cari",
+            "thenText": "sistem menampilkan daftar buku yang cocok beserta status tersedia atau sedang dipinjam",
+            "sortOrder": 1
+          }
+        ]
+      },
+      {
+        "id": 224,
+        "role": "mahasiswa",
+        "feature": "memperpanjang masa pinjam buku secara mandiri hingga maksimum dua kali per buku",
+        "benefit": "mengurangi kunjungan ke perpustakaan untuk perpanjangan",
+        "rawAiOutput": {
+          "role": "mahasiswa",
+          "benefit": "mengurangi kunjungan ke perpustakaan untuk perpanjangan",
+          "feature": "memperpanjang masa pinjam buku secara mandiri hingga maksimum dua kali per buku",
+          "out_of_scope": [
+            "pencarian buku berdasarkan kategori",
+            "fitur reservasi buku"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menambah satu periode perpanjangan pada pinjaman dan memperbarui tanggal kembali",
+              "when": "mahasiswa memilih opsi perpanjang pada buku tersebut",
+              "given": "mahasiswa memiliki pinjaman buku yang belum mencapai dua kali perpanjangan"
+            },
+            {
+              "then": "sistem menolak perpanjangan dan menampilkan pesan bahwa batas maksimum telah tercapai",
+              "when": "mahasiswa mencoba memperpanjang lagi",
+              "given": "mahasiswa telah melakukan dua kali perpanjangan pada sebuah buku"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 324,
+            "givenText": "mahasiswa memiliki pinjaman buku yang belum mencapai dua kali perpanjangan",
+            "whenText": "mahasiswa memilih opsi perpanjang pada buku tersebut",
+            "thenText": "sistem menambah satu periode perpanjangan pada pinjaman dan memperbarui tanggal kembali",
+            "sortOrder": 1
+          },
+          {
+            "id": 325,
+            "givenText": "mahasiswa telah melakukan dua kali perpanjangan pada sebuah buku",
+            "whenText": "mahasiswa mencoba memperpanjang lagi",
+            "thenText": "sistem menolak perpanjangan dan menampilkan pesan bahwa batas maksimum telah tercapai",
+            "sortOrder": 2
+          }
+        ]
+      },
+      {
+        "id": 225,
+        "role": "sistem",
+        "feature": "menghitung denda keterlambatan secara otomatis sebesar seribu rupiah per hari per buku dan menampilkannya pada halaman pinjaman mahasiswa",
+        "benefit": "memberikan informasi denda secara transparan",
+        "rawAiOutput": {
+          "role": "sistem",
+          "benefit": "memberikan informasi denda secara transparan",
+          "feature": "menghitung denda keterlambatan secara otomatis sebesar seribu rupiah per hari per buku dan menampilkannya pada halaman pinjaman mahasiswa",
+          "out_of_scope": [
+            "pencarian buku berdasarkan kategori",
+            "fitur reservasi buku"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menampilkan jumlah denda yang dihitung sebesar 1000 rupiah per hari untuk setiap buku yang terlambat",
+              "when": "mahasiswa membuka halaman \"pinjaman saya\"",
+              "given": "terdapat pinjaman buku yang melewati tanggal kembali"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 326,
+            "givenText": "terdapat pinjaman buku yang melewati tanggal kembali",
+            "whenText": "mahasiswa membuka halaman \"pinjaman saya\"",
+            "thenText": "sistem menampilkan jumlah denda yang dihitung sebesar 1000 rupiah per hari untuk setiap buku yang terlambat",
+            "sortOrder": 1
+          }
+        ]
+      },
+      {
+        "id": 226,
+        "role": "pustakawan",
+        "feature": "mencari data mahasiswa dengan memasukkan NIM ketika kartu mahasiswa hilang",
+        "benefit": "memungkinkan verifikasi identitas tanpa kartu fisik",
+        "rawAiOutput": {
+          "role": "pustakawan",
+          "benefit": "memungkinkan verifikasi identitas tanpa kartu fisik",
+          "feature": "mencari data mahasiswa dengan memasukkan NIM ketika kartu mahasiswa hilang",
+          "out_of_scope": [
+            "pencarian buku berdasarkan kategori",
+            "fitur reservasi buku"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menampilkan data mahasiswa yang bersangkutan",
+              "when": "pustakawan memasukkan NIM mahasiswa ke dalam sistem pencarian",
+              "given": "kartu mahasiswa tidak tersedia"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 327,
+            "givenText": "kartu mahasiswa tidak tersedia",
+            "whenText": "pustakawan memasukkan NIM mahasiswa ke dalam sistem pencarian",
+            "thenText": "sistem menampilkan data mahasiswa yang bersangkutan",
+            "sortOrder": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "runIndex": 4,
+    "newTranscriptId": 44,
+    "status": "completed",
+    "durationMs": 28009,
+    "model": "openai/gpt-oss-120b",
+    "temperature": 0,
+    "errorMessage": null,
+    "storyCount": 5,
+    "acCountPerStory": [
+      2,
+      1,
+      2,
+      2,
+      1
+    ],
+    "zeroAcStoryCount": 0,
+    "hasTemplatePrefix": false,
+    "templatePrefixStoriesCount": 0,
+    "scopeLeakWords": [
+      "pesan"
+    ],
+    "scopeLeakLocations": [
+      "Story 1 AC 2 (then): \"pesan\""
+    ],
+    "hasScopeLeak": true,
+    "detailsDetectedWords": [
+      "tombol"
+    ],
+    "detailsCountAC": 3,
+    "roleFeatureList": [
+      "pustakawan: mencatat peminjaman buku dengan scan kartu mahasiswa dan barcode buku",
+      "mahasiswa: mencari buku lewat aplikasi mobile berdasarkan judul atau pengarang dan melihat status ketersediaan",
+      "mahasiswa: memperpanjang pinjaman buku secara mandiri hingga maksimal dua kali per buku",
+      "mahasiswa: melihat jumlah denda keterlambatan pada halaman pinjaman saya",
+      "pustakawan: mencari data mahasiswa menggunakan NIM ketika kartu hilang"
+    ],
+    "outOfScopeList": [
+      "fitur reservasi buku",
+      "pencarian buku berdasarkan kategori"
+    ],
+    "stories": [
+      {
+        "id": 227,
+        "role": "pustakawan",
+        "feature": "mencatat peminjaman buku dengan scan kartu mahasiswa dan barcode buku",
+        "benefit": "mempercepat proses peminjaman dan mengurangi kesalahan pencatatan",
+        "rawAiOutput": {
+          "role": "pustakawan",
+          "benefit": "mempercepat proses peminjaman dan mengurangi kesalahan pencatatan",
+          "feature": "mencatat peminjaman buku dengan scan kartu mahasiswa dan barcode buku",
+          "out_of_scope": [
+            "fitur reservasi buku",
+            "pencarian buku berdasarkan kategori"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menyimpan data peminjaman dan menampilkan konfirmasi berhasil",
+              "when": "pustakawan memindai kartu mahasiswa yang valid dan barcode buku",
+              "given": "pustakawan berada di halaman peminjaman"
+            },
+            {
+              "then": "sistem menampilkan pesan error bahwa kartu tidak dikenali",
+              "when": "scan selesai",
+              "given": "pustakawan memindai kartu mahasiswa yang tidak terdaftar"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 328,
+            "givenText": "pustakawan berada di halaman peminjaman",
+            "whenText": "pustakawan memindai kartu mahasiswa yang valid dan barcode buku",
+            "thenText": "sistem menyimpan data peminjaman dan menampilkan konfirmasi berhasil",
+            "sortOrder": 1
+          },
+          {
+            "id": 329,
+            "givenText": "pustakawan memindai kartu mahasiswa yang tidak terdaftar",
+            "whenText": "scan selesai",
+            "thenText": "sistem menampilkan pesan error bahwa kartu tidak dikenali",
+            "sortOrder": 2
+          }
+        ]
+      },
+      {
+        "id": 228,
+        "role": "mahasiswa",
+        "feature": "mencari buku lewat aplikasi mobile berdasarkan judul atau pengarang dan melihat status ketersediaan",
+        "benefit": "memudahkan menemukan buku yang diinginkan tanpa harus datang ke perpustakaan",
+        "rawAiOutput": {
+          "role": "mahasiswa",
+          "benefit": "memudahkan menemukan buku yang diinginkan tanpa harus datang ke perpustakaan",
+          "feature": "mencari buku lewat aplikasi mobile berdasarkan judul atau pengarang dan melihat status ketersediaan",
+          "out_of_scope": [
+            "fitur reservasi buku",
+            "pencarian buku berdasarkan kategori"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menampilkan daftar buku yang cocok beserta status tersedia atau dipinjam",
+              "when": "mahasiswa memasukkan kata kunci judul atau pengarang dan menekan tombol cari",
+              "given": "mahasiswa membuka aplikasi mobile perpustakaan"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 330,
+            "givenText": "mahasiswa membuka aplikasi mobile perpustakaan",
+            "whenText": "mahasiswa memasukkan kata kunci judul atau pengarang dan menekan tombol cari",
+            "thenText": "sistem menampilkan daftar buku yang cocok beserta status tersedia atau dipinjam",
+            "sortOrder": 1
+          }
+        ]
+      },
+      {
+        "id": 229,
+        "role": "mahasiswa",
+        "feature": "memperpanjang pinjaman buku secara mandiri hingga maksimal dua kali per buku",
+        "benefit": "mengurangi kunjungan ke perpustakaan untuk perpanjangan",
+        "rawAiOutput": {
+          "role": "mahasiswa",
+          "benefit": "mengurangi kunjungan ke perpustakaan untuk perpanjangan",
+          "feature": "memperpanjang pinjaman buku secara mandiri hingga maksimal dua kali per buku",
+          "out_of_scope": [
+            "fitur reservasi buku",
+            "pencarian buku berdasarkan kategori"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem memperpanjang tanggal kembali satu periode dan mencatat tambahan perpanjangan",
+              "when": "mahasiswa menekan tombol perpanjang pada buku tersebut",
+              "given": "mahasiswa berada di halaman 'pinjaman saya' dan buku belum diperpanjang dua kali"
+            },
+            {
+              "then": "sistem menolak perpanjangan dan menampilkan informasi bahwa batas perpanjangan tercapai",
+              "when": "mahasiswa menekan tombol perpanjang",
+              "given": "mahasiswa berada di halaman 'pinjaman saya' dan buku sudah diperpanjang dua kali"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 331,
+            "givenText": "mahasiswa berada di halaman 'pinjaman saya' dan buku belum diperpanjang dua kali",
+            "whenText": "mahasiswa menekan tombol perpanjang pada buku tersebut",
+            "thenText": "sistem memperpanjang tanggal kembali satu periode dan mencatat tambahan perpanjangan",
+            "sortOrder": 1
+          },
+          {
+            "id": 332,
+            "givenText": "mahasiswa berada di halaman 'pinjaman saya' dan buku sudah diperpanjang dua kali",
+            "whenText": "mahasiswa menekan tombol perpanjang",
+            "thenText": "sistem menolak perpanjangan dan menampilkan informasi bahwa batas perpanjangan tercapai",
+            "sortOrder": 2
+          }
+        ]
+      },
+      {
+        "id": 230,
+        "role": "mahasiswa",
+        "feature": "melihat jumlah denda keterlambatan pada halaman pinjaman saya",
+        "benefit": "mengetahui jumlah yang harus dibayar sebelum mengunjungi kasir",
+        "rawAiOutput": {
+          "role": "mahasiswa",
+          "benefit": "mengetahui jumlah yang harus dibayar sebelum mengunjungi kasir",
+          "feature": "melihat jumlah denda keterlambatan pada halaman pinjaman saya",
+          "out_of_scope": [
+            "fitur reservasi buku",
+            "pencarian buku berdasarkan kategori"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menghitung denda 1000 rupiah per hari per buku dan menampilkan total denda yang harus dibayar",
+              "when": "sistem menampilkan daftar pinjaman",
+              "given": "mahasiswa membuka halaman 'pinjaman saya' dan ada buku yang melewati tanggal kembali"
+            },
+            {
+              "then": "sistem menampilkan bahwa tidak ada denda",
+              "when": "sistem menampilkan daftar pinjaman",
+              "given": "mahasiswa membuka halaman 'pinjaman saya' dan tidak ada buku yang terlambat"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 333,
+            "givenText": "mahasiswa membuka halaman 'pinjaman saya' dan ada buku yang melewati tanggal kembali",
+            "whenText": "sistem menampilkan daftar pinjaman",
+            "thenText": "sistem menghitung denda 1000 rupiah per hari per buku dan menampilkan total denda yang harus dibayar",
+            "sortOrder": 1
+          },
+          {
+            "id": 334,
+            "givenText": "mahasiswa membuka halaman 'pinjaman saya' dan tidak ada buku yang terlambat",
+            "whenText": "sistem menampilkan daftar pinjaman",
+            "thenText": "sistem menampilkan bahwa tidak ada denda",
+            "sortOrder": 2
+          }
+        ]
+      },
+      {
+        "id": 231,
+        "role": "pustakawan",
+        "feature": "mencari data mahasiswa menggunakan NIM ketika kartu hilang",
+        "benefit": "memungkinkan identifikasi mahasiswa tanpa kartu fisik",
+        "rawAiOutput": {
+          "role": "pustakawan",
+          "benefit": "memungkinkan identifikasi mahasiswa tanpa kartu fisik",
+          "feature": "mencari data mahasiswa menggunakan NIM ketika kartu hilang",
+          "out_of_scope": [
+            "fitur reservasi buku",
+            "pencarian buku berdasarkan kategori"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menampilkan data mahasiswa termasuk nama dan status keanggotaan",
+              "when": "pustakawan memasukkan NIM mahasiswa yang valid dan menekan cari",
+              "given": "pustakawan berada di halaman pencarian mahasiswa"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 335,
+            "givenText": "pustakawan berada di halaman pencarian mahasiswa",
+            "whenText": "pustakawan memasukkan NIM mahasiswa yang valid dan menekan cari",
+            "thenText": "sistem menampilkan data mahasiswa termasuk nama dan status keanggotaan",
+            "sortOrder": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "runIndex": 5,
+    "newTranscriptId": 45,
+    "status": "completed",
+    "durationMs": 40216,
+    "model": "openai/gpt-oss-120b",
+    "temperature": 0,
+    "errorMessage": null,
+    "storyCount": 5,
+    "acCountPerStory": [
+      1,
+      1,
+      1,
+      3,
+      1
+    ],
+    "zeroAcStoryCount": 0,
+    "hasTemplatePrefix": false,
+    "templatePrefixStoriesCount": 0,
+    "scopeLeakWords": [
+      "reservasi",
+      "dipesan",
+      "pesan"
+    ],
+    "scopeLeakLocations": [
+      "Story 4 AC 1 (given): \"reservasi\"",
+      "Story 4 AC 3 (given): \"dipesan\"",
+      "Story 4 AC 3 (given): \"pesan\"",
+      "Story 4 AC 3 (then): \"dipesan\"",
+      "Story 4 AC 3 (then): \"pesan\""
+    ],
+    "hasScopeLeak": true,
+    "detailsDetectedWords": [],
+    "detailsCountAC": 0,
+    "roleFeatureList": [
+      "pustakawan: mencatat peminjaman buku dengan memindai kartu mahasiswa dan barcode buku",
+      "pustakawan: mencari data mahasiswa dengan NIM ketika kartu hilang",
+      "mahasiswa: mencari buku berdasarkan judul atau pengarang melalui aplikasi mobile dan melihat status ketersediaan",
+      "mahasiswa: memperpanjang peminjaman buku secara mandiri melalui aplikasi",
+      "mahasiswa: melihat jumlah denda keterlambatan per buku pada halaman pinjaman"
+    ],
+    "outOfScopeList": [
+      "reservasi buku",
+      "pencarian buku berdasarkan kategori"
+    ],
+    "stories": [
+      {
+        "id": 232,
+        "role": "pustakawan",
+        "feature": "mencatat peminjaman buku dengan memindai kartu mahasiswa dan barcode buku",
+        "benefit": "mempercepat proses peminjaman dan mengurangi kesalahan pencatatan manual",
+        "rawAiOutput": {
+          "role": "pustakawan",
+          "benefit": "mempercepat proses peminjaman dan mengurangi kesalahan pencatatan manual",
+          "feature": "mencatat peminjaman buku dengan memindai kartu mahasiswa dan barcode buku",
+          "out_of_scope": [
+            "reservasi buku",
+            "pencarian buku berdasarkan kategori"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem mencatat transaksi peminjaman, menyimpan tanggal peminjaman, dan menampilkan konfirmasi berhasil",
+              "when": "pustakawan memindai kartu mahasiswa lalu memindai barcode buku",
+              "given": "pustakawan berada di halaman pencatatan peminjaman dengan kartu mahasiswa dan buku yang tersedia"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 336,
+            "givenText": "pustakawan berada di halaman pencatatan peminjaman dengan kartu mahasiswa dan buku yang tersedia",
+            "whenText": "pustakawan memindai kartu mahasiswa lalu memindai barcode buku",
+            "thenText": "sistem mencatat transaksi peminjaman, menyimpan tanggal peminjaman, dan menampilkan konfirmasi berhasil",
+            "sortOrder": 1
+          }
+        ]
+      },
+      {
+        "id": 233,
+        "role": "pustakawan",
+        "feature": "mencari data mahasiswa dengan NIM ketika kartu hilang",
+        "benefit": "memungkinkan pencatatan peminjaman meski kartu tidak tersedia",
+        "rawAiOutput": {
+          "role": "pustakawan",
+          "benefit": "memungkinkan pencatatan peminjaman meski kartu tidak tersedia",
+          "feature": "mencari data mahasiswa dengan NIM ketika kartu hilang",
+          "out_of_scope": [
+            "reservasi buku",
+            "pencarian buku berdasarkan kategori"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menampilkan data mahasiswa sehingga pustakawan dapat melanjutkan pencatatan peminjaman",
+              "when": "pustakawan memasukkan NIM mahasiswa ke dalam sistem",
+              "given": "pustakawan berada di halaman pencatatan peminjaman dan kartu mahasiswa tidak dapat dipindai"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 337,
+            "givenText": "pustakawan berada di halaman pencatatan peminjaman dan kartu mahasiswa tidak dapat dipindai",
+            "whenText": "pustakawan memasukkan NIM mahasiswa ke dalam sistem",
+            "thenText": "sistem menampilkan data mahasiswa sehingga pustakawan dapat melanjutkan pencatatan peminjaman",
+            "sortOrder": 1
+          }
+        ]
+      },
+      {
+        "id": 234,
+        "role": "mahasiswa",
+        "feature": "mencari buku berdasarkan judul atau pengarang melalui aplikasi mobile dan melihat status ketersediaan",
+        "benefit": "memudahkan menemukan buku yang diinginkan dan mengetahui apakah dapat dipinjam",
+        "rawAiOutput": {
+          "role": "mahasiswa",
+          "benefit": "memudahkan menemukan buku yang diinginkan dan mengetahui apakah dapat dipinjam",
+          "feature": "mencari buku berdasarkan judul atau pengarang melalui aplikasi mobile dan melihat status ketersediaan",
+          "out_of_scope": [
+            "reservasi buku",
+            "pencarian buku berdasarkan kategori"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menampilkan daftar buku yang cocok beserta status tersedia atau dipinjam",
+              "when": "mahasiswa memasukkan judul atau nama pengarang buku",
+              "given": "mahasiswa membuka aplikasi mobile dan berada pada halaman pencarian buku"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 338,
+            "givenText": "mahasiswa membuka aplikasi mobile dan berada pada halaman pencarian buku",
+            "whenText": "mahasiswa memasukkan judul atau nama pengarang buku",
+            "thenText": "sistem menampilkan daftar buku yang cocok beserta status tersedia atau dipinjam",
+            "sortOrder": 1
+          }
+        ]
+      },
+      {
+        "id": 235,
+        "role": "mahasiswa",
+        "feature": "memperpanjang peminjaman buku secara mandiri melalui aplikasi",
+        "benefit": "mengurangi kebutuhan datang ke perpustakaan dan mempercepat proses perpanjangan",
+        "rawAiOutput": {
+          "role": "mahasiswa",
+          "benefit": "mengurangi kebutuhan datang ke perpustakaan dan mempercepat proses perpanjangan",
+          "feature": "memperpanjang peminjaman buku secara mandiri melalui aplikasi",
+          "out_of_scope": [
+            "reservasi buku",
+            "pencarian buku berdasarkan kategori"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem memperpanjang tanggal kembali, menambah hitungan perpanjangan, dan menampilkan konfirmasi sukses",
+              "when": "mahasiswa meminta perpanjangan melalui aplikasi",
+              "given": "mahasiswa memiliki pinjaman buku yang belum habis masa tenggang, belum ada reservasi, dan jumlah perpanjangan kurang dari dua"
+            },
+            {
+              "then": "sistem menolak permintaan dan menampilkan informasi bahwa batas perpanjangan tercapai",
+              "when": "mahasiswa meminta perpanjangan lagi",
+              "given": "mahasiswa telah memperpanjang buku tersebut dua kali"
+            },
+            {
+              "then": "sistem menolak perpanjangan dan memberi tahu bahwa buku sudah dipesan",
+              "when": "mahasiswa meminta perpanjangan",
+              "given": "buku yang ingin diperpanjang telah dipesan oleh mahasiswa lain"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 339,
+            "givenText": "mahasiswa memiliki pinjaman buku yang belum habis masa tenggang, belum ada reservasi, dan jumlah perpanjangan kurang dari dua",
+            "whenText": "mahasiswa meminta perpanjangan melalui aplikasi",
+            "thenText": "sistem memperpanjang tanggal kembali, menambah hitungan perpanjangan, dan menampilkan konfirmasi sukses",
+            "sortOrder": 1
+          },
+          {
+            "id": 340,
+            "givenText": "mahasiswa telah memperpanjang buku tersebut dua kali",
+            "whenText": "mahasiswa meminta perpanjangan lagi",
+            "thenText": "sistem menolak permintaan dan menampilkan informasi bahwa batas perpanjangan tercapai",
+            "sortOrder": 2
+          },
+          {
+            "id": 341,
+            "givenText": "buku yang ingin diperpanjang telah dipesan oleh mahasiswa lain",
+            "whenText": "mahasiswa meminta perpanjangan",
+            "thenText": "sistem menolak perpanjangan dan memberi tahu bahwa buku sudah dipesan",
+            "sortOrder": 3
+          }
+        ]
+      },
+      {
+        "id": 236,
+        "role": "mahasiswa",
+        "feature": "melihat jumlah denda keterlambatan per buku pada halaman pinjaman",
+        "benefit": "mengetahui utang denda untuk membayar tepat waktu",
+        "rawAiOutput": {
+          "role": "mahasiswa",
+          "benefit": "mengetahui utang denda untuk membayar tepat waktu",
+          "feature": "melihat jumlah denda keterlambatan per buku pada halaman pinjaman",
+          "out_of_scope": [
+            "reservasi buku",
+            "pencarian buku berdasarkan kategori"
+          ],
+          "acceptance_criteria": [
+            {
+              "then": "sistem menghitung denda 1000 rupiah per hari per buku dan menampilkan total denda pada halaman",
+              "when": "sistem menampilkan detail pinjaman",
+              "given": "mahasiswa membuka halaman pinjaman dan ada buku yang sudah lewat tanggal kembali"
+            }
+          ]
+        },
+        "acceptanceCriteria": [
+          {
+            "id": 342,
+            "givenText": "mahasiswa membuka halaman pinjaman dan ada buku yang sudah lewat tanggal kembali",
+            "whenText": "sistem menampilkan detail pinjaman",
+            "thenText": "sistem menghitung denda 1000 rupiah per hari per buku dan menampilkan total denda pada halaman",
+            "sortOrder": 1
+          }
+        ]
+      }
+    ]
+  }
+]
