@@ -136,7 +136,7 @@ cp .env.example .env
 ```
 Isi konfigurasi pada file `project/backend/.env`:
 - `DATABASE_URL`: URL koneksi basis data Anda (contoh: `postgresql://postgres:PASSWORD@localhost:5432/kapsel_db`)
-- `OPENROUTER_API_KEY`: API Key OpenRouter Anda (`sk-or-v1-...`)
+- `OPENROUTER_API_KEY`: API Key OpenRouter yang diperoleh dari dashboard OpenRouter.
 - `OPENROUTER_MODEL`: Model yang digunakan (default: `openai/gpt-oss-120b`)
 - `OPENROUTER_TEMPERATURE`: Suhu sampling (default: `0`)
 - `PORT`: Port server backend (default: `3000`)
@@ -226,3 +226,4 @@ Hasil evaluasi akan otomatis disimpan di folder `project/backend/eval-results/` 
 
 1. **Kerahasiaan API Key:** Berkas `.env` telah diabaikan melalui `.gitignore`. Jangan pernah memasukkan API Key OpenRouter atau kredensial database ke dalam commit repositori git. Jika token terlanjur terekspos, segera cabut (*revoke*) token melalui dashboard OpenRouter dan buat token baru.
 2. **Karakteristik Data Uji:** Seluruh transkrip percakapan rapat yang digunakan dalam pengujian dan evaluasi repositori ini merupakan data simulasi sintetis dan tidak memuat informasi pribadi (*Personally Identifiable Information* / PII) dari individu atau institusi nyata.
+
