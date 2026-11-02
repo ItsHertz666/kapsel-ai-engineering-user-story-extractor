@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Build outputs and temporary caches
+dist/
+build/
+.svelte-kit/
+.output/
+out/
+coverage/
+*.tsbuildinfo
+.eslintcache
+.cache/
+
+# Logs
+*.log
+logs/
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Lecture & Professor materials (private / copyrighted)
+Pengajaran-MataKuliah/
+_materi-dosen/
+
+# Submission archives (keep raw docs, ignore compressed archives)
+docs/*.zip
+
+# IDE & Editor files
+.idea/
+.vscode/
+*.swp
+*.swo
