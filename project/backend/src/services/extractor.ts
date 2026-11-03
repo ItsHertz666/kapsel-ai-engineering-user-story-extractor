@@ -1,6 +1,14 @@
-import { eq } from 'drizzle-orm';
+import { eq, desc, and, sql } from 'drizzle-orm';
 import { db } from '../db';
-import { transcripts, userStories, acceptanceCriteria } from '../db/schema';
+import {
+	transcripts,
+	userStories,
+	acceptanceCriteria,
+	extractionRuns,
+	extractionAttempts,
+	type extractionAttemptStatusEnum
+} from '../db/schema';
+import { calculateAttemptCost } from '../utils/pricing';
 
 export const SYSTEM_PROMPT = `Anda adalah seorang System Analyst profesional. Tugas Anda adalah mengekstrak kebutuhan fungsional (functional requirements) dari transkrip rapat berbahasa Indonesia menjadi User Story dan Acceptance Criteria.
 
@@ -44,12 +52,61 @@ export interface ExtractorOutput {
 	user_stories: ParsedUserStory[];
 }
 
+export interface RecordedAttemptContext {
+	runId: number;
+	attemptNumber: number;
+	modelName: string;
+	isFallback: boolean;
+	httpStatusCode: number | null;
+	promptTokens: number | null;
+	completionTokens: number | null;
+	totalTokens: number | null;
+	durationMs: number;
+	status: (typeof extractionAttemptStatusEnum.enumValues)[number];
+	errorMessage: string | null;
+}
+
+export interface AttemptLogHandler {
+	recordAttemptStart: (
+		modelName: string,
+		isFallback: boolean
+	) => Promise<number>; // returns attemptNumber
+	recordResponseReceived: (params: {
+		attemptNumber: number;
+		modelName: string;
+		isFallback: boolean;
+		httpStatusCode: number;
+		durationMs: number;
+		promptTokens: number | null;
+		completionTokens: number | null;
+		totalTokens: number | null;
+	}) => Promise<number>; // returns attemptId
+	updateAttemptStatus: (
+		attemptId: number,
+		status: 'success' | 'parse_error',
+		errorMessage?: string | null
+	) => Promise<void>;
+	recordHttpOrNetworkError: (params: {
+		attemptNumber: number;
+		modelName: string;
+		isFallback: boolean;
+		httpStatusCode: number | null;
+		durationMs: number;
+		status: 'api_error' | 'network_error';
+		errorMessage: string;
+	}) => Promise<number>;
+}
+
 export interface CallOpenRouterResult {
 	content: string;
 	model: string;
+	attemptId: number;
 }
 
-export async function callOpenRouter(transcriptText: string): Promise<CallOpenRouterResult> {
+export async function callOpenRouter(
+	transcriptText: string,
+	attemptLogger?: AttemptLogHandler
+): Promise<CallOpenRouterResult> {
 	const apiKey = Bun.env.OPENROUTER_API_KEY;
 	const primaryModel = Bun.env.OPENROUTER_MODEL;
 	const fallbackModel = Bun.env.OPENROUTER_FALLBACK_MODEL;
@@ -76,7 +133,7 @@ export async function callOpenRouter(transcriptText: string): Promise<CallOpenRo
 		{ role: 'user', content: transcriptText }
 	];
 
-	const sendRequest = async (modelToUse: string) => {
+	const sendSingleRequest = async (modelToUse: string, isFallback: boolean) => {
 		const basePayload = {
 			model: modelToUse,
 			messages,
@@ -84,74 +141,135 @@ export async function callOpenRouter(transcriptText: string): Promise<CallOpenRo
 			max_tokens: 4000
 		};
 
-		let response = await fetch(url, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				Authorization: `Bearer ${apiKey}`
-			},
-			body: JSON.stringify({
-				...basePayload,
-				reasoning: { enabled: false },
-				response_format: { type: 'json_object' }
-			})
-		});
+		const startReqTime = Date.now();
+		let currentAttemptNumber = 0;
+		if (attemptLogger) {
+			currentAttemptNumber = await attemptLogger.recordAttemptStart(modelToUse, isFallback);
+		}
 
-		// If HTTP 400 (unsupported optional params), retry once without reasoning and response_format
-		if (response.status === 400) {
+		let response: Response;
+		try {
 			response = await fetch(url, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
 					Authorization: `Bearer ${apiKey}`
 				},
-				body: JSON.stringify(basePayload)
+				body: JSON.stringify({
+					...basePayload,
+					reasoning: { enabled: false },
+					response_format: { type: 'json_object' }
+				})
+			});
+
+			// If HTTP 400 (unsupported optional params), retry once cleanly
+			if (response.status === 400) {
+				response = await fetch(url, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${apiKey}`
+					},
+					body: JSON.stringify(basePayload)
+				});
+			}
+		} catch (netErr: any) {
+			const durationMs = Date.now() - startReqTime;
+			const errorMsg = (netErr?.message || String(netErr)).slice(0, 500);
+			if (attemptLogger) {
+				await attemptLogger.recordHttpOrNetworkError({
+					attemptNumber: currentAttemptNumber,
+					modelName: modelToUse,
+					isFallback,
+					httpStatusCode: null,
+					durationMs,
+					status: 'network_error',
+					errorMessage: errorMsg
+				});
+			}
+			throw netErr;
+		}
+
+		const durationMs = Date.now() - startReqTime;
+
+		if (!response.ok) {
+			const errorBody = await response.text();
+			const errorMsg = `Status ${response.status}: ${errorBody}`.slice(0, 500);
+			if (attemptLogger) {
+				await attemptLogger.recordHttpOrNetworkError({
+					attemptNumber: currentAttemptNumber,
+					modelName: modelToUse,
+					isFallback,
+					httpStatusCode: response.status,
+					durationMs,
+					status: 'api_error',
+					errorMessage: errorMsg
+				});
+			}
+			return { response, attemptId: 0, errorBody };
+		}
+
+		// Response is HTTP 200 OK
+		const data = (await response.json()) as any;
+		const content = data?.choices?.[0]?.message?.content;
+		const model = data?.model || modelToUse;
+
+		const promptTokens = typeof data?.usage?.prompt_tokens === 'number' ? data.usage.prompt_tokens : null;
+		const completionTokens = typeof data?.usage?.completion_tokens === 'number' ? data.usage.completion_tokens : null;
+		const totalTokens = typeof data?.usage?.total_tokens === 'number' ? data.usage.total_tokens : null;
+
+		let attemptId = 0;
+		if (attemptLogger) {
+			attemptId = await attemptLogger.recordResponseReceived({
+				attemptNumber: currentAttemptNumber,
+				modelName: model,
+				isFallback,
+				httpStatusCode: response.status,
+				durationMs,
+				promptTokens,
+				completionTokens,
+				totalTokens
 			});
 		}
 
-		return response;
+		return { response, attemptId, data, content, model };
 	};
 
 	const retryableStatuses = [429, 502, 503];
 	const delays = [3000, 6000, 12000];
 
-	// Initial attempt + up to 3 retries (total 4 attempts) on primaryModel
-	let response = await sendRequest(primaryModel);
+	// Initial attempt on primary model
+	let lastReqResult = await sendSingleRequest(primaryModel, false);
 
-	for (let i = 0; i < delays.length && retryableStatuses.includes(response.status); i++) {
+	for (let i = 0; i < delays.length && retryableStatuses.includes(lastReqResult.response.status); i++) {
 		const delay = delays[i]!;
-		const attempt = i + 1; // 1st retry, 2nd retry, 3rd retry
-		console.log(`[callOpenRouter] Received status ${response.status}. Retrying attempt ${attempt}/3 after ${delay / 1000}s...`);
+		const attempt = i + 1;
+		console.log(`[callOpenRouter] Received status ${lastReqResult.response.status}. Retrying attempt ${attempt}/3 after ${delay / 1000}s...`);
 		await new Promise((resolve) => setTimeout(resolve, delay));
-		response = await sendRequest(primaryModel);
+		lastReqResult = await sendSingleRequest(primaryModel, false);
 	}
 
-	// If all retries failed and fallback model is configured, make one final attempt
-	if (!response.ok && fallbackModel) {
-		console.log(`[callOpenRouter] All attempts failed on ${primaryModel} (status ${response.status}). Trying fallback model: ${fallbackModel}...`);
-		response = await sendRequest(fallbackModel);
+	// Fallback model attempt if primary completely failed
+	if (!lastReqResult.response.ok && fallbackModel) {
+		console.log(`[callOpenRouter] All attempts failed on ${primaryModel} (status ${lastReqResult.response.status}). Trying fallback: ${fallbackModel}...`);
+		lastReqResult = await sendSingleRequest(fallbackModel, true);
 	}
 
-	if (!response.ok) {
-		const errorBody = await response.text();
-		throw new Error(`OpenRouter API error (Status ${response.status}): ${errorBody}`);
+	if (!lastReqResult.response.ok) {
+		throw new Error(`OpenRouter API error: ${lastReqResult.errorBody || lastReqResult.response.statusText}`);
 	}
 
-	const data = (await response.json()) as any;
-	const content = data?.choices?.[0]?.message?.content;
-	const model = data?.model || 'unknown';
-
-	console.log(`[extractor] answered by model: ${model}`);
+	const content = lastReqResult.content;
+	const model = lastReqResult.model;
 
 	if (!content || typeof content !== 'string' || content.trim() === '') {
 		throw new Error('OpenRouter API returned no content in choices[0].message.content');
 	}
 
-	return { content, model };
+	return { content, model, attemptId: lastReqResult.attemptId };
 }
 
 export function parseModelOutput(rawContent: string): ExtractorOutput {
-	// Strip markdown code fences if present
 	let cleaned = rawContent.replace(/```(?:json)?/gi, '').replace(/```/g, '').trim();
 
 	const firstBrace = cleaned.indexOf('{');
@@ -196,7 +314,7 @@ export function parseModelOutput(rawContent: string): ExtractorOutput {
 			typeof story.benefit !== 'string' ||
 			story.benefit.trim() === ''
 		) {
-			continue; // Drop invalid story
+			continue;
 		}
 
 		const cleanedRole = cleanPrefixes(story.role);
@@ -252,20 +370,115 @@ export function parseModelOutput(rawContent: string): ExtractorOutput {
 	};
 }
 
-export async function processTranscript(transcriptId: number) {
-	const [transcript] = await db
-		.select()
-		.from(transcripts)
-		.where(eq(transcripts.id, transcriptId));
+/**
+ * Recovers stale extraction runs left in 'processing' status.
+ * Run is marked 'failed' after staleThresholdMs (default 10 minutes), preserving attempt history.
+ */
+export async function recoverStaleRuns(staleThresholdMs = 10 * 60 * 1000): Promise<number> {
+	const cutoff = new Date(Date.now() - staleThresholdMs).toISOString();
 
-	if (!transcript) {
-		const err = new Error(`Transcript with ID ${transcriptId} not found`);
-		(err as any).statusCode = 404;
-		throw err;
+	const staleRuns = await db
+		.select({ id: extractionRuns.id })
+		.from(extractionRuns)
+		.where(
+			and(
+				eq(extractionRuns.status, 'processing'),
+				sql`${extractionRuns.startedAt} < ${cutoff}::timestamp`
+			)
+		);
+
+	if (staleRuns.length === 0) {
+		return 0;
 	}
 
-	try {
+	for (const run of staleRuns) {
 		await db
+			.update(extractionRuns)
+			.set({
+				status: 'failed',
+				errorMessage: 'Execution timed out or backend process was interrupted.',
+				completedAt: new Date()
+			})
+			.where(eq(extractionRuns.id, run.id));
+	}
+
+	return staleRuns.length;
+}
+
+export interface ProcessTranscriptResult {
+	id: number;
+	run_id: number;
+	run_number: number;
+	status: 'completed';
+	user_stories_count: number;
+	attempts_count: number;
+	total_prompt_tokens: number | null;
+	total_completion_tokens: number | null;
+	total_tokens: number | null;
+	estimated_cost_usd: number | null;
+}
+
+export async function processTranscript(transcriptId: number): Promise<ProcessTranscriptResult> {
+	// First: Run recovery for stale runs before proceeding
+	await recoverStaleRuns();
+
+	// Step 1: Short DB transaction to lock transcript row, check concurrency, allocate run_number, and insert new run
+	const newRun = await db.transaction(async (tx) => {
+		// Row-level lock on transcript
+		const [lockedTranscript] = await tx
+			.select()
+			.from(transcripts)
+			.where(eq(transcripts.id, transcriptId))
+			.for('update');
+
+		if (!lockedTranscript) {
+			const err = new Error(`Transcript with ID ${transcriptId} not found`);
+			(err as any).statusCode = 404;
+			throw err;
+		}
+
+		// Check if there is an active run in 'processing'
+		const [activeRun] = await tx
+			.select()
+			.from(extractionRuns)
+			.where(
+				and(
+					eq(extractionRuns.transcriptId, transcriptId),
+					eq(extractionRuns.status, 'processing')
+				)
+			);
+
+		if (activeRun) {
+			const err = new Error(
+				`Transcript ${transcriptId} is currently being processed by run #${activeRun.runNumber}`
+			);
+			(err as any).statusCode = 409;
+			throw err;
+		}
+
+		// Calculate next run_number
+		const [latestRun] = await tx
+			.select({ maxRun: sql<number>`COALESCE(MAX(${extractionRuns.runNumber}), 0)` })
+			.from(extractionRuns)
+			.where(eq(extractionRuns.transcriptId, transcriptId));
+
+		const nextRunNumber = (Number(latestRun?.maxRun) || 0) + 1;
+
+		const [createdRun] = await tx
+			.insert(extractionRuns)
+			.values({
+				transcriptId,
+				runNumber: nextRunNumber,
+				status: 'processing'
+			})
+			.returning();
+
+		if (!createdRun) {
+			throw new Error('Failed to create extraction run record');
+		}
+
+		// Update transcript status to 'processing'
+		await tx
 			.update(transcripts)
 			.set({
 				status: 'processing',
@@ -274,47 +487,144 @@ export async function processTranscript(transcriptId: number) {
 			})
 			.where(eq(transcripts.id, transcriptId));
 
-		const maxAttempts = 3;
-		let parsed: ExtractorOutput | null = null;
-		let answeredModels: string[] = [];
-		let lastRawContent = '';
-		let lastParseError: any = null;
+		return { createdRun, rawText: lockedTranscript.rawText };
+	});
 
-		for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-			console.log(`[processTranscript] Attempt ${attempt}/${maxAttempts} for transcript ${transcriptId}...`);
-			const { content, model } = await callOpenRouter(transcript.rawText);
-			answeredModels.push(model);
-			lastRawContent = content;
+	const runId = newRun.createdRun.id;
+	const runNumber = newRun.createdRun.runNumber;
+	const rawText = newRun.rawText;
 
-			console.log(`[processTranscript] Attempt ${attempt} answered by model: ${model}`);
+	// Prepare attempt logging handlers
+	let attemptSeq = 0;
+	const attemptLogger: AttemptLogHandler = {
+		recordAttemptStart: async () => {
+			attemptSeq++;
+			return attemptSeq;
+		},
+		recordResponseReceived: async ({
+			attemptNumber,
+			modelName,
+			isFallback,
+			httpStatusCode,
+			durationMs,
+			promptTokens,
+			completionTokens,
+			totalTokens
+		}) => {
+			const costData = calculateAttemptCost(modelName, promptTokens, completionTokens);
+			const [inserted] = await db
+				.insert(extractionAttempts)
+				.values({
+					runId,
+					attemptNumber,
+					modelName,
+					isFallback,
+					httpStatusCode,
+					promptTokens,
+					completionTokens,
+					totalTokens,
+					durationMs,
+					status: 'response_received',
+					promptRatePerMillionUsd: costData.promptRatePerMillionUsd,
+					completionRatePerMillionUsd: costData.completionRatePerMillionUsd,
+					estimatedCostUsd: costData.estimatedCostUsd,
+					errorMessage: null
+				})
+				.returning({ id: extractionAttempts.id });
+			return inserted?.id ?? 0;
+		},
+		updateAttemptStatus: async (attemptId, status, errorMessage) => {
+			await db
+				.update(extractionAttempts)
+				.set({
+					status,
+					errorMessage: errorMessage ? errorMessage.slice(0, 500) : null
+				})
+				.where(eq(extractionAttempts.id, attemptId));
+		},
+		recordHttpOrNetworkError: async ({
+			attemptNumber,
+			modelName,
+			isFallback,
+			httpStatusCode,
+			durationMs,
+			status,
+			errorMessage
+		}) => {
+			const costData = calculateAttemptCost(modelName, null, null);
+			const [inserted] = await db
+				.insert(extractionAttempts)
+				.values({
+					runId,
+					attemptNumber,
+					modelName,
+					isFallback,
+					httpStatusCode,
+					promptTokens: null,
+					completionTokens: null,
+					totalTokens: null,
+					durationMs,
+					status,
+					promptRatePerMillionUsd: costData.promptRatePerMillionUsd,
+					completionRatePerMillionUsd: costData.completionRatePerMillionUsd,
+					estimatedCostUsd: null,
+					errorMessage: errorMessage.slice(0, 500)
+				})
+				.returning({ id: extractionAttempts.id });
+			return inserted?.id ?? 0;
+		}
+	};
+
+	const maxAttempts = 3;
+	let parsed: ExtractorOutput | null = null;
+	let lastParseError: any = null;
+
+	try {
+		for (let parseAttempt = 1; parseAttempt <= maxAttempts; parseAttempt++) {
+			console.log(`[processTranscript] Run #${runNumber} Attempt ${parseAttempt}/${maxAttempts}...`);
+			let callResult: CallOpenRouterResult;
+			try {
+				callResult = await callOpenRouter(rawText, attemptLogger);
+			} catch (callErr: any) {
+				lastParseError = callErr;
+				break; // Cannot reach OpenRouter or fatal config error
+			}
 
 			try {
-				parsed = parseModelOutput(content);
+				parsed = parseModelOutput(callResult.content);
+				if (callResult.attemptId) {
+					await attemptLogger.updateAttemptStatus(callResult.attemptId, 'success');
+				}
 				break; // Successfully parsed!
 			} catch (parseErr: any) {
 				lastParseError = parseErr;
-				console.warn(
-					`[processTranscript] Attempt ${attempt}/${maxAttempts} failed to parse output from model '${model}': ${parseErr?.message || parseErr}`
-				);
-				if (attempt < maxAttempts) {
+				if (callResult.attemptId) {
+					await attemptLogger.updateAttemptStatus(
+						callResult.attemptId,
+						'parse_error',
+						parseErr?.message || String(parseErr)
+					);
+				}
+				if (parseAttempt < maxAttempts) {
 					console.log(`[processTranscript] Retrying callOpenRouter + parseModelOutput...`);
 				}
 			}
 		}
 
 		if (!parsed) {
-			const modelsStr = answeredModels.join(', ');
-			const snippet = lastRawContent.slice(0, 300);
-			const detailedMsg = `Failed to parse model output after ${maxAttempts} attempts. Models answered: [${modelsStr}]. Last error: ${lastParseError?.message || lastParseError}. First 300 chars of output: ${snippet}`;
+			const detailedMsg = `Failed to extract user stories after attempts. Last error: ${lastParseError?.message || lastParseError}`;
 			throw new Error(detailedMsg);
 		}
 
+		const validatedParsed: ExtractorOutput = parsed;
+
+		// Atomic transaction for updating user stories and marking run & transcript completed
 		await db.transaction(async (tx) => {
 			await tx
 				.delete(userStories)
 				.where(eq(userStories.transcriptId, transcriptId));
 
-			for (const story of parsed.user_stories) {
+			for (const story of validatedParsed.user_stories) {
 				const [insertedStory] = await tx
 					.insert(userStories)
 					.values({
@@ -324,7 +634,7 @@ export async function processTranscript(transcriptId: number) {
 						benefit: story.benefit,
 						rawAiOutput: {
 							...story,
-							out_of_scope: parsed.out_of_scope || []
+							out_of_scope: validatedParsed.out_of_scope || []
 						},
 						status: 'draft'
 					})
@@ -343,6 +653,17 @@ export async function processTranscript(transcriptId: number) {
 				}
 			}
 
+			// Mark extraction run as completed
+			await tx
+				.update(extractionRuns)
+				.set({
+					status: 'completed',
+					errorMessage: null,
+					completedAt: new Date()
+				})
+				.where(eq(extractionRuns.id, runId));
+
+			// Mark transcript as completed
 			await tx
 				.update(transcripts)
 				.set({
@@ -353,14 +674,56 @@ export async function processTranscript(transcriptId: number) {
 				.where(eq(transcripts.id, transcriptId));
 		});
 
+		// Calculate aggregated metrics for this run
+		const runAttempts = await db
+			.select()
+			.from(extractionAttempts)
+			.where(eq(extractionAttempts.runId, runId));
+
+		let sumPrompt: number | null = 0;
+		let sumCompletion: number | null = 0;
+		let sumTotal: number | null = 0;
+		let sumCost: number | null = 0;
+
+		for (const a of runAttempts) {
+			if (a.promptTokens !== null) sumPrompt = (sumPrompt ?? 0) + a.promptTokens;
+			if (a.completionTokens !== null) sumCompletion = (sumCompletion ?? 0) + a.completionTokens;
+			if (a.totalTokens !== null) sumTotal = (sumTotal ?? 0) + a.totalTokens;
+
+			if (a.estimatedCostUsd !== null && sumCost !== null) {
+				sumCost += a.estimatedCostUsd;
+			} else if (a.status === 'success' || a.status === 'parse_error') {
+				// Tokens were billed but cost is unknown
+				sumCost = null;
+			}
+		}
+
 		return {
 			id: transcriptId,
-			status: 'completed' as const,
-			user_stories_count: parsed.user_stories.length
+			run_id: runId,
+			run_number: runNumber,
+			status: 'completed',
+			user_stories_count: parsed.user_stories.length,
+			attempts_count: runAttempts.length,
+			total_prompt_tokens: sumPrompt,
+			total_completion_tokens: sumCompletion,
+			total_tokens: sumTotal,
+			estimated_cost_usd: sumCost !== null ? Number(sumCost.toFixed(6)) : null
 		};
 	} catch (error: any) {
-		const message = error?.message || String(error);
+		const message = (error?.message || String(error)).slice(0, 500);
+
+		// Safely record run failure
 		try {
+			await db
+				.update(extractionRuns)
+				.set({
+					status: 'failed',
+					errorMessage: message,
+					completedAt: new Date()
+				})
+				.where(eq(extractionRuns.id, runId));
+
 			await db
 				.update(transcripts)
 				.set({
@@ -370,7 +733,7 @@ export async function processTranscript(transcriptId: number) {
 				})
 				.where(eq(transcripts.id, transcriptId));
 		} catch (dbErr) {
-			console.error(`Failed to update transcript status to 'failed':`, dbErr);
+			console.error(`Failed to mark run/transcript failed in DB:`, dbErr);
 		}
 
 		throw error;
