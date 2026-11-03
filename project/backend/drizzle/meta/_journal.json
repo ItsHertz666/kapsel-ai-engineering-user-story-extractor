@@ -8,6 +8,13 @@
       "when": 1790511318146,
       "tag": "0000_moaning_fixer",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793660116147,
+      "tag": "0001_zippy_calypso",
+      "breakpoints": true
     }
   ]
 }
