@@ -1,6 +1,13 @@
-import { eq } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 import { db } from './db';
-import { transcripts, userStories, acceptanceCriteria, userStoryStatusEnum } from './db/schema';
+import {
+	transcripts,
+	userStories,
+	acceptanceCriteria,
+	userStoryStatusEnum,
+	extractionRuns,
+	extractionAttempts
+} from './db/schema';
 import { processTranscript } from './services/extractor';
 
 const port = Number(Bun.env.PORT) || 3000;
@@ -95,6 +102,9 @@ export async function handleRequest(req: Request): Promise<Response> {
 			if (error?.statusCode === 404 || error?.message?.includes('not found')) {
 				return jsonResponse({ error: error.message }, 404);
 			}
+			if (error?.statusCode === 409 || error?.message?.includes('currently being processed')) {
+				return jsonResponse({ error: error.message }, 409);
+			}
 			console.error(`Error processing transcript ${id}:`, error);
 			return jsonResponse({ error: error?.message || 'Processing failed' }, 500);
 		}
@@ -120,6 +130,14 @@ export async function handleRequest(req: Request): Promise<Response> {
 								]
 							}
 						}
+					},
+					extractionRuns: {
+						orderBy: [desc(extractionRuns.runNumber)],
+						with: {
+							attempts: {
+								orderBy: (attempts, { asc }) => [asc(attempts.attemptNumber)]
+							}
+						}
 					}
 				}
 			});
@@ -128,7 +146,79 @@ export async function handleRequest(req: Request): Promise<Response> {
 				return jsonResponse({ error: 'Transcript not found' }, 404);
 			}
 
-			return jsonResponse(transcript, 200);
+			// Compute lifetime token usage & cost across all historical runs
+			let lifetimePromptTokens: number | null = 0;
+			let lifetimeCompletionTokens: number | null = 0;
+			let lifetimeTotalTokens: number | null = 0;
+			let lifetimeCostUsd: number | null = 0;
+
+			const runs = transcript.extractionRuns || [];
+			for (const r of runs) {
+				for (const a of r.attempts || []) {
+					if (a.promptTokens !== null) lifetimePromptTokens = (lifetimePromptTokens ?? 0) + a.promptTokens;
+					if (a.completionTokens !== null) lifetimeCompletionTokens = (lifetimeCompletionTokens ?? 0) + a.completionTokens;
+					if (a.totalTokens !== null) lifetimeTotalTokens = (lifetimeTotalTokens ?? 0) + a.totalTokens;
+
+					if (a.estimatedCostUsd !== null && lifetimeCostUsd !== null) {
+						lifetimeCostUsd += a.estimatedCostUsd;
+					} else if (a.status === 'success' || a.status === 'parse_error') {
+						lifetimeCostUsd = null;
+					}
+				}
+			}
+
+			// Latest run stats
+			const latestRun = runs[0] || null;
+			let latestPromptTokens: number | null = 0;
+			let latestCompletionTokens: number | null = 0;
+			let latestTotalTokens: number | null = 0;
+			let latestCostUsd: number | null = 0;
+
+			if (latestRun) {
+				for (const a of latestRun.attempts || []) {
+					if (a.promptTokens !== null) latestPromptTokens = (latestPromptTokens ?? 0) + a.promptTokens;
+					if (a.completionTokens !== null) latestCompletionTokens = (latestCompletionTokens ?? 0) + a.completionTokens;
+					if (a.totalTokens !== null) latestTotalTokens = (latestTotalTokens ?? 0) + a.totalTokens;
+
+					if (a.estimatedCostUsd !== null && latestCostUsd !== null) {
+						latestCostUsd += a.estimatedCostUsd;
+					} else if (a.status === 'success' || a.status === 'parse_error') {
+						latestCostUsd = null;
+					}
+				}
+			} else {
+				latestPromptTokens = null;
+				latestCompletionTokens = null;
+				latestTotalTokens = null;
+				latestCostUsd = null;
+			}
+
+			return jsonResponse(
+				{
+					...transcript,
+					usage_summary: {
+						latest_run: latestRun
+							? {
+									run_id: latestRun.id,
+									run_number: latestRun.runNumber,
+									status: latestRun.status,
+									prompt_tokens: latestPromptTokens,
+									completion_tokens: latestCompletionTokens,
+									total_tokens: latestTotalTokens,
+									estimated_cost_usd: latestCostUsd !== null ? Number(latestCostUsd.toFixed(6)) : null
+							  }
+							: null,
+						lifetime: {
+							total_runs: runs.length,
+							prompt_tokens: lifetimePromptTokens,
+							completion_tokens: lifetimeCompletionTokens,
+							total_tokens: lifetimeTotalTokens,
+							estimated_cost_usd: lifetimeCostUsd !== null ? Number(lifetimeCostUsd.toFixed(6)) : null
+						}
+					}
+				},
+				200
+			);
 		} catch (error) {
 			console.error(`Database error on GET /api/transcripts/${id}:`, error);
 			return jsonResponse({ error: 'Failed to fetch transcript' }, 500);

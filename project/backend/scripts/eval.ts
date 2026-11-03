@@ -2,7 +2,7 @@ import { asc, eq } from 'drizzle-orm';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { db } from '../src/db';
-import { acceptanceCriteria, transcripts, userStories } from '../src/db/schema';
+import { acceptanceCriteria, transcripts, userStories, extractionRuns, extractionAttempts } from '../src/db/schema';
 import { processTranscript } from '../src/services/extractor';
 
 interface CommandLineArgs {
@@ -119,6 +119,7 @@ function parseArgs(): CommandLineArgs {
 interface RunResult {
 	runIndex: number;
 	newTranscriptId: number;
+	extractionRunId: number | null;
 	status: 'completed' | 'failed';
 	durationMs: number;
 	model: string;
@@ -130,12 +131,17 @@ interface RunResult {
 	hasTemplatePrefix: boolean;
 	templatePrefixStoriesCount: number;
 	scopeLeakWords: string[];
-	scopeLeakLocations: string[]; // e.g. "Story 1 (feature): notifikasi"
+	scopeLeakLocations: string[];
 	hasScopeLeak: boolean;
 	detailsDetectedWords: string[];
 	detailsCountAC: number;
 	roleFeatureList: string[];
 	outOfScopeList: string[];
+	promptTokens: number | null;
+	completionTokens: number | null;
+	totalTokens: number | null;
+	estimatedCostUsd: number | null;
+	attemptsCount: number;
 	stories: Array<{
 		id: number;
 		role: string;
@@ -194,7 +200,6 @@ async function main() {
 	console.log(`- Details (UI/Tech)  : ${args.details.length > 0 ? args.details.join(', ') : '(tidak ada)'}`);
 	console.log(`======================================================\n`);
 
-	// 1. Fetch original transcript raw_text
 	const [orig] = await db
 		.select()
 		.from(transcripts)
@@ -216,7 +221,6 @@ async function main() {
 		const runFilename = `eval-${args.transcriptId}-${args.label}-run${k}`;
 		console.log(`--> [Run ${k}/${args.runs}] Membuat transcript evaluasi (${runFilename})...`);
 
-		// INSERT new transcript with same rawText
 		const [inserted] = await db
 			.insert(transcripts)
 			.values({
@@ -237,13 +241,25 @@ async function main() {
 		let durationMs = 0;
 		let errorMessage: string | null = null;
 		let fetchedStoriesWithAc: RunResult['stories'] = [];
+		let extractionRunId: number | null = null;
+		let promptTokens: number | null = null;
+		let completionTokens: number | null = null;
+		let totalTokens: number | null = null;
+		let estimatedCostUsd: number | null = null;
+		let attemptsCount = 0;
 
 		try {
 			console.log(`    Memproses transcript ID: ${newId}...`);
-			await processTranscript(newId);
+			const processRes = await processTranscript(newId);
 			durationMs = Date.now() - startTime;
 			status = 'completed';
-			console.log(`    Selesai dalam ${durationMs}ms.`);
+			extractionRunId = processRes.run_id;
+			promptTokens = processRes.total_prompt_tokens;
+			completionTokens = processRes.total_completion_tokens;
+			totalTokens = processRes.total_tokens;
+			estimatedCostUsd = processRes.estimated_cost_usd;
+			attemptsCount = processRes.attempts_count;
+			console.log(`    Selesai dalam ${durationMs}ms (Tokens: ${totalTokens ?? 'N/A'}, Cost: $${estimatedCostUsd ?? 'N/A'}).`);
 
 			// Fetch user stories and AC
 			const dbStories = await db
@@ -304,7 +320,6 @@ async function main() {
 			const s = fetchedStoriesWithAc[sIdx]!;
 			const storyNum = sIdx + 1;
 
-			// Check story text
 			const fieldsToCheck: Array<[string, string]> = [
 				['role', s.role],
 				['feature', s.feature],
@@ -321,7 +336,6 @@ async function main() {
 				}
 			}
 
-			// Check AC
 			for (let aIdx = 0; aIdx < s.acceptanceCriteria.length; aIdx++) {
 				const ac = s.acceptanceCriteria[aIdx]!;
 				const acNum = aIdx + 1;
@@ -345,7 +359,6 @@ async function main() {
 		const scopeLeakWords = Array.from(detectedLeakWords);
 		const hasScopeLeak = scopeLeakWords.length > 0;
 
-		// Details check on AC
 		let detailsCountAC = 0;
 		const detailsDetectedWordsSet = new Set<string>();
 
@@ -379,6 +392,7 @@ async function main() {
 		results.push({
 			runIndex: k,
 			newTranscriptId: newId,
+			extractionRunId,
 			status,
 			durationMs,
 			model: modelName,
@@ -396,6 +410,11 @@ async function main() {
 			detailsCountAC,
 			roleFeatureList,
 			outOfScopeList,
+			promptTokens,
+			completionTokens,
+			totalTokens,
+			estimatedCostUsd,
+			attemptsCount,
 			stories: fetchedStoriesWithAc
 		});
 	}
@@ -407,7 +426,6 @@ async function main() {
 		delete Bun.env.OPENROUTER_TEMPERATURE;
 	}
 
-	// 4. Output to backend/eval-results/
 	const resultsDir = join(process.cwd(), 'eval-results');
 	if (!existsSync(resultsDir)) {
 		mkdirSync(resultsDir, { recursive: true });
@@ -422,13 +440,12 @@ async function main() {
 	const csvPath = join(resultsDir, `${prefix}-runs.csv`);
 	const mdPath = join(resultsDir, `${prefix}-summary.md`);
 
-	// A. Write runs.json
 	writeFileSync(jsonPath, JSON.stringify(results, null, 2), 'utf-8');
 
-	// B. Write runs.csv
 	const csvHeaders = [
 		'run',
 		'transcript_id',
+		'extraction_run_id',
 		'status',
 		'duration_ms',
 		'model',
@@ -445,156 +462,120 @@ async function main() {
 		'ac_with_details_count',
 		'details_detected_words',
 		'role_feature_list',
-		'out_of_scope_list'
+		'out_of_scope_list',
+		'prompt_tokens',
+		'completion_tokens',
+		'total_tokens',
+		'estimated_cost_usd',
+		'attempts_count'
 	];
 
-	const csvRows = results.map((r) => [
-		r.runIndex,
-		r.newTranscriptId,
-		r.status,
-		r.durationMs,
-		escapeCsvField(r.model),
-		r.temperature,
-		escapeCsvField(r.errorMessage || ''),
-		r.storyCount,
-		escapeCsvField(r.acCountPerStory.join('; ')),
-		r.zeroAcStoryCount,
-		r.hasTemplatePrefix,
-		r.templatePrefixStoriesCount,
-		r.hasScopeLeak,
-		escapeCsvField(r.scopeLeakWords.join('; ')),
-		escapeCsvField(r.scopeLeakLocations.join('; ')),
-		r.detailsCountAC,
-		escapeCsvField(r.detailsDetectedWords.join('; ')),
-		escapeCsvField(r.roleFeatureList.join('; ')),
-		escapeCsvField(r.outOfScopeList.join('; '))
-	]);
-
-	const csvContent = [csvHeaders.join(','), ...csvRows.map((row) => row.join(','))].join('\n');
-	writeFileSync(csvPath, csvContent, 'utf-8');
-
-	// C. Compute Aggregates for summary.md and console
-	const totalRuns = results.length;
-	const successfulRuns = results.filter((r) => r.status === 'completed');
-	const failedRuns = results.filter((r) => r.status === 'failed');
-
-	const durations = results.map((r) => r.durationMs);
-	const avgDuration = durations.length > 0 ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length) : 0;
-	const maxDuration = durations.length > 0 ? Math.max(...durations) : 0;
-
-	// Story counts for successful runs
-	const storyCounts = successfulRuns.map((r) => r.storyCount);
-	const minStories = storyCounts.length > 0 ? Math.min(...storyCounts) : 0;
-	const maxStories = storyCounts.length > 0 ? Math.max(...storyCounts) : 0;
-	const avgStories =
-		storyCounts.length > 0
-			? (storyCounts.reduce((a, b) => a + b, 0) / storyCounts.length).toFixed(2)
-			: '0';
-
-	// Distribution of story counts
-	const storyDistribution: Record<number, number> = {};
-	for (const count of storyCounts) {
-		storyDistribution[count] = (storyDistribution[count] || 0) + 1;
+	const csvLines = [csvHeaders.join(',')];
+	for (const r of results) {
+		const row = [
+			r.runIndex,
+			r.newTranscriptId,
+			r.extractionRunId ?? '',
+			r.status,
+			r.durationMs,
+			escapeCsvField(r.model),
+			r.temperature,
+			escapeCsvField(r.errorMessage),
+			r.storyCount,
+			escapeCsvField(r.acCountPerStory.join(';')),
+			r.zeroAcStoryCount,
+			r.hasTemplatePrefix,
+			r.templatePrefixStoriesCount,
+			r.hasScopeLeak,
+			escapeCsvField(r.scopeLeakWords.join(';')),
+			escapeCsvField(r.scopeLeakLocations.join(';')),
+			r.detailsCountAC,
+			escapeCsvField(r.detailsDetectedWords.join(';')),
+			escapeCsvField(r.roleFeatureList.join(';')),
+			escapeCsvField(r.outOfScopeList.join(';')),
+			r.promptTokens ?? '',
+			r.completionTokens ?? '',
+			r.totalTokens ?? '',
+			r.estimatedCostUsd ?? '',
+			r.attemptsCount
+		];
+		csvLines.push(row.join(','));
 	}
-	const distributionStr = Object.entries(storyDistribution)
-		.map(([count, runsCount]) => `${count} story: ${runsCount} run`)
-		.join(', ') || '-';
+	writeFileSync(csvPath, csvLines.join('\n'), 'utf-8');
 
-	// Percentage of runs with keyword leak
-	const leakRuns = successfulRuns.filter((r) => r.hasScopeLeak).length;
-	const leakPct = successfulRuns.length > 0 ? ((leakRuns / successfulRuns.length) * 100).toFixed(1) : '0';
+	// Write summary markdown
+	const completed = results.filter((r) => r.status === 'completed');
+	const completedCount = completed.length;
+	const avgDuration = completedCount > 0 ? (completed.reduce((a, b) => a + b.durationMs, 0) / completedCount).toFixed(0) : '0';
+	const avgStories = completedCount > 0 ? (completed.reduce((a, b) => a + b.storyCount, 0) / completedCount).toFixed(2) : '0';
 
-	// Percentage of runs with template prefix
-	const prefixRuns = successfulRuns.filter((r) => r.hasTemplatePrefix).length;
-	const prefixPct = successfulRuns.length > 0 ? ((prefixRuns / successfulRuns.length) * 100).toFixed(1) : '0';
-
-	// Average AC per story
-	let totalACs = 0;
-	let totalStoriesCount = 0;
-	for (const r of successfulRuns) {
-		totalStoriesCount += r.storyCount;
-		totalACs += r.acCountPerStory.reduce((a, b) => a + b, 0);
+	let totalAcAll = 0;
+	let totalStoriesAll = 0;
+	for (const r of completed) {
+		totalStoriesAll += r.storyCount;
+		totalAcAll += r.acCountPerStory.reduce((a, b) => a + b, 0);
 	}
-	const avgAcPerStory = totalStoriesCount > 0 ? (totalACs / totalStoriesCount).toFixed(2) : '0';
+	const avgAcPerStory = totalStoriesAll > 0 ? (totalAcAll / totalStoriesAll).toFixed(2) : '0';
 
-	// Generate summary markdown
-	let md = `# Ringkasan Evaluasi Ekstraksi
+	const leakRuns = completed.filter((r) => r.hasScopeLeak).length;
+	const leakRate = completedCount > 0 ? ((leakRuns / completedCount) * 100).toFixed(1) : '0';
 
-- **Waktu Evaluasi**: ${now.toISOString()}
-- **Label**: ${args.label}
-- **Model**: ${modelName}
-- **Temperature**: ${activeTemperature}
-- **Transcript Sumber ID**: ${args.transcriptId}
-- **Keywords (Scope Filter)**: ${args.keywords.length > 0 ? args.keywords.join(', ') : '*(tidak ditentukan)*'}
-- **Details (UI/Tech Filter)**: ${args.details.length > 0 ? args.details.join(', ') : '*(tidak ditentukan)*'}
+	const prefixRuns = completed.filter((r) => r.hasTemplatePrefix).length;
+	const prefixRate = completedCount > 0 ? ((prefixRuns / completedCount) * 100).toFixed(1) : '0';
 
-## 1. Statistik Agregat
+	let avgPromptTokens = 'N/A';
+	let avgCompletionTokens = 'N/A';
+	let avgTotalTokens = 'N/A';
+	let avgCostUsd = 'N/A';
 
+	const validTokens = completed.filter((r) => r.totalTokens !== null);
+	if (validTokens.length > 0) {
+		avgPromptTokens = (validTokens.reduce((a, b) => a + (b.promptTokens ?? 0), 0) / validTokens.length).toFixed(0);
+		avgCompletionTokens = (validTokens.reduce((a, b) => a + (b.completionTokens ?? 0), 0) / validTokens.length).toFixed(0);
+		avgTotalTokens = (validTokens.reduce((a, b) => a + (b.totalTokens ?? 0), 0) / validTokens.length).toFixed(0);
+	}
+
+	const validCosts = completed.filter((r) => r.estimatedCostUsd !== null);
+	if (validCosts.length > 0) {
+		avgCostUsd = (validCosts.reduce((a, b) => a + (b.estimatedCostUsd ?? 0), 0) / validCosts.length).toFixed(6);
+	}
+
+	const mdSummary = `# Evaluasi Ekstraksi: ${args.label}
+- **Tanggal/Waktu**   : ${now.toLocaleString('id-ID')}
+- **Transcript ID**   : ${args.transcriptId}
+- **Total Run**       : ${args.runs} (Berhasil: ${completedCount}, Gagal: ${results.length - completedCount})
+- **Model**           : ${modelName}
+- **Temperature**     : ${activeTemperature}
+
+## Metrik Performa & Output
 | Metrik | Nilai |
-|---|---|
-| Total Run | ${totalRuns} |
-| Run Berhasil | ${successfulRuns.length} |
-| Run Gagal | ${failedRuns.length} |
-| Jumlah Story (Min / Rata-rata / Maks) | ${minStories} / ${avgStories} / ${maxStories} |
-| Distribusi Jumlah Story | ${distributionStr} |
-| Rata-rata AC per Story | ${avgAcPerStory} |
-| Run dengan Kebocoran Keywords (%) | ${leakRuns}/${successfulRuns.length} (${leakPct}%) |
-| Run dengan Awalan Template (%) | ${prefixRuns}/${successfulRuns.length} (${prefixPct}%) |
-| Durasi Rata-rata / Maksimal (ms) | ${avgDuration} ms / ${maxDuration} ms |
+| --- | --- |
+| Durasi Rata-rata | ${avgDuration} ms |
+| User Stories / Run | ${avgStories} |
+| AC / User Story | ${avgAcPerStory} |
+| Tingkat Scope Leak | ${leakRate}% (${leakRuns}/${completedCount} run) |
+| Template Prefix Leak | ${prefixRate}% (${prefixRuns}/${completedCount} run) |
 
-## 2. Tabel Ringkas Hasil Run
-
-| Run | Transcript ID | Status | Durasi (ms) | Jumlah Story | AC / Story | Awalan Template? | Kebocoran Keywords? | AC dg Details |
-|---|---|---|---|---|---|---|---|---|
+## Metrik Token & Biaya (K=8 Layer 5)
+| Metrik | Nilai |
+| --- | --- |
+| Prompt Tokens (Avg) | ${avgPromptTokens} |
+| Completion Tokens (Avg) | ${avgCompletionTokens} |
+| Total Tokens (Avg) | ${avgTotalTokens} |
+| Estimasi Biaya / Run | $${avgCostUsd} |
 `;
 
-	for (const r of results) {
-		const acListStr = r.acCountPerStory.length > 0 ? r.acCountPerStory.join(',') : '-';
-		const leakStr = r.hasScopeLeak ? `Ya (${r.scopeLeakWords.join(', ')})` : 'Tidak';
-		const prefixStr = r.hasTemplatePrefix ? `Ya (${r.templatePrefixStoriesCount})` : 'Tidak';
-		md += `| ${r.runIndex} | ${r.newTranscriptId} | ${r.status} | ${r.durationMs} | ${r.storyCount} | ${acListStr} | ${prefixStr} | ${leakStr} | ${r.detailsCountAC} |\n`;
-	}
+	writeFileSync(mdPath, mdSummary, 'utf-8');
 
-	md += `
-> **Catatan Penting**:
-> Deteksi keywords dan details merupakan **heuristik berbasis pencocokan kata kunci**, bukan penilaian makna semantik yang mutlak. Hasil evaluasi tetap perlu ditinjau secara manual untuk memastikan konteks dan akurasi yang sebenarnya.
-`;
-
-	writeFileSync(mdPath, md, 'utf-8');
-
-	// 5. Cetak ke console
 	console.log(`\n======================================================`);
-	console.log(`RINGKASAN EVALUASI (${prefix})`);
-	console.log(`======================================================`);
-	console.log(`Total Run             : ${totalRuns} (Berhasil: ${successfulRuns.length}, Gagal: ${failedRuns.length})`);
-	console.log(`Jumlah Story          : Min: ${minStories}, Rata-rata: ${avgStories}, Maks: ${maxStories}`);
-	console.log(`Distribusi Story      : ${distributionStr}`);
-	console.log(`Rata-rata AC / Story  : ${avgAcPerStory}`);
-	console.log(`Kebocoran Keywords    : ${leakRuns}/${successfulRuns.length} run (${leakPct}%)`);
-	console.log(`Awalan Template       : ${prefixRuns}/${successfulRuns.length} run (${prefixPct}%)`);
-	console.log(`Durasi Ekstraksi      : Rata-rata: ${avgDuration}ms, Maks: ${maxDuration}ms`);
-	console.log(`------------------------------------------------------`);
-	console.log(`Tabel Run:`);
-	console.log(`Run | Status     | Durasi  | Story | AC/Story | Template? | Leak?`);
-	for (const r of results) {
-		const acStr = r.acCountPerStory.join(',') || '-';
-		console.log(
-			`${String(r.runIndex).padEnd(3)} | ${r.status.padEnd(10)} | ${(r.durationMs + 'ms').padEnd(7)} | ${String(r.storyCount).padEnd(5)} | ${acStr.padEnd(8)} | ${(r.hasTemplatePrefix ? 'Ya' : 'Tidak').padEnd(9)} | ${r.hasScopeLeak ? `Ya (${r.scopeLeakWords.join(',')})` : 'Tidak'}`
-		);
-	}
-	console.log(`======================================================`);
-	console.log(`Hasil tersimpan di:`);
-	console.log(`- ${jsonPath}`);
-	console.log(`- ${csvPath}`);
-	console.log(`- ${mdPath}`);
-	console.log(`\nCatatan: Deteksi keywords dan details adalah heuristik berbasis kata kunci, bukan penilaian makna, dan hasil tetap perlu ditinjau manual.`);
+	console.log(`Evaluasi selesai. Hasil tersimpan di:`);
+	console.log(`- JSON : ${jsonPath}`);
+	console.log(`- CSV  : ${csvPath}`);
+	console.log(`- MD   : ${mdPath}`);
 	console.log(`======================================================\n`);
-
-	// Exit process cleanly
-	process.exit(0);
 }
 
 main().catch((err) => {
-	console.error('Unhandled fatal error in evaluation script:', err);
+	console.error('Fatal eval error:', err);
 	process.exit(1);
 });
