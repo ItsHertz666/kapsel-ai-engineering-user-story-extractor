@@ -1,5 +1,10 @@
-import { pgTable, serial, text, integer, jsonb, timestamp, pgEnum, boolean, uniqueIndex, doublePrecision } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, integer, jsonb, timestamp, pgEnum, boolean, uniqueIndex, doublePrecision, uuid, varchar, char, index } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
+
+export const userRoleEnum = pgEnum('user_role', [
+	'user',
+	'admin'
+]);
 
 export const transcriptStatusEnum = pgEnum('transcript_status', [
 	'queued',
@@ -29,8 +34,52 @@ export const extractionAttemptStatusEnum = pgEnum('extraction_attempt_status', [
 	'network_error'      // Fetch threw (DNS failure, connection reset, timeout)
 ]);
 
+export const users = pgTable('users', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	email: varchar('email', { length: 255 }).notNull().unique(),
+	passwordHash: varchar('password_hash', { length: 255 }).notNull(),
+	role: userRoleEnum('role').default('user').notNull(),
+	isActive: boolean('is_active').default(true).notNull(),
+	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+	updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date())
+});
+
+export const sessions = pgTable(
+	'sessions',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		userId: uuid('user_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'restrict' }),
+		sessionTokenHash: char('session_token_hash', { length: 64 }).notNull(),
+		csrfTokenHash: char('csrf_token_hash', { length: 64 }),
+		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+		expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+		lastActivityAt: timestamp('last_activity_at', { withTimezone: true }).defaultNow().notNull()
+	},
+	(table) => [
+		uniqueIndex('sessions_session_token_hash_unique').on(table.sessionTokenHash),
+		index('sessions_user_id_idx').on(table.userId)
+	]
+);
+
+export const auditLogs = pgTable('audit_logs', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	adminUserId: uuid('admin_user_id')
+		.notNull()
+		.references(() => users.id, { onDelete: 'restrict' }),
+	action: varchar('action', { length: 64 }).notNull(),
+	resourceType: varchar('resource_type', { length: 64 }).notNull(),
+	resourceId: varchar('resource_id', { length: 64 }).notNull(),
+	details: jsonb('details').notNull(),
+	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+});
+
 export const transcripts = pgTable('transcripts', {
 	id: serial('id').primaryKey(),
+	userId: uuid('user_id')
+		.notNull()
+		.references(() => users.id, { onDelete: 'restrict' }),
 	originalFilename: text('original_filename'),
 	rawText: text('raw_text').notNull(),
 	status: transcriptStatusEnum('status').default('queued'),
@@ -112,7 +161,31 @@ export const acceptanceCriteria = pgTable('acceptance_criteria', {
 	updatedAt: timestamp('updated_at').defaultNow().$onUpdate(() => new Date())
 });
 
-export const transcriptsRelations = relations(transcripts, ({ many }) => ({
+export const usersRelations = relations(users, ({ many }) => ({
+	sessions: many(sessions),
+	transcripts: many(transcripts),
+	auditLogs: many(auditLogs)
+}));
+
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+	user: one(users, {
+		fields: [sessions.userId],
+		references: [users.id]
+	})
+}));
+
+export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
+	adminUser: one(users, {
+		fields: [auditLogs.adminUserId],
+		references: [users.id]
+	})
+}));
+
+export const transcriptsRelations = relations(transcripts, ({ one, many }) => ({
+	user: one(users, {
+		fields: [transcripts.userId],
+		references: [users.id]
+	}),
 	userStories: many(userStories),
 	extractionRuns: many(extractionRuns)
 }));

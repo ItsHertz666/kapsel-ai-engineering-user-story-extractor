@@ -15,6 +15,27 @@
       "when": 1793660116147,
       "tag": "0001_zippy_calypso",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794136966649,
+      "tag": "0002_panoramic_gateway",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794138348079,
+      "tag": "0003_flippant_iron_monger",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794140261329,
+      "tag": "0004_cloudy_lightspeed",
+      "breakpoints": true
     }
   ]
 }

@@ -6,24 +6,46 @@ import {
 	acceptanceCriteria,
 	userStoryStatusEnum,
 	extractionRuns,
-	extractionAttempts
+	extractionAttempts,
+	users
 } from './db/schema';
 import { processTranscript } from './services/extractor';
+import {
+	hashPassword,
+	defaultPasswordVerifier,
+	type PasswordVerifier,
+	isValidEmail,
+	isValidPassword,
+	buildSessionCookie,
+	buildClearSessionCookie,
+	parseCookies,
+	SESSION_COOKIE_NAME,
+	DUMMY_ARGON2ID_HASH
+} from './utils/auth';
+import { createSession, revokeSessionByRawToken } from './services/auth';
+import { authenticateRequest } from './middleware/auth';
+import { isOriginAllowed, checkRateLimit } from './utils/security';
 
 const port = Number(Bun.env.PORT) || 3000;
 
 export const corsHeaders: Record<string, string> = {
 	'Access-Control-Allow-Origin': '*',
 	'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-	'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+	'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-CSRF-Token',
+	'Access-Control-Allow-Credentials': 'true'
 };
 
-export function jsonResponse(data: unknown, status = 200): Response {
+export function jsonResponse(
+	data: unknown,
+	status = 200,
+	customHeaders?: Record<string, string>
+): Response {
 	return new Response(JSON.stringify(data), {
 		status,
 		headers: {
 			'Content-Type': 'application/json',
-			...corsHeaders
+			...corsHeaders,
+			...(customHeaders || {})
 		}
 	});
 }
@@ -40,7 +62,12 @@ export const VALID_STATUS_TRANSITIONS: Record<string, string[]> = {
 	rejected: ['edited', 'approved']
 };
 
-export async function handleRequest(req: Request): Promise<Response> {
+export interface RequestContextOptions {
+	passwordVerifier?: PasswordVerifier;
+}
+
+export async function handleRequest(req: Request, options: RequestContextOptions = {}): Promise<Response> {
+	const passwordVerifier = options.passwordVerifier || defaultPasswordVerifier;
 	const url = new URL(req.url);
 	const { pathname } = url;
 
@@ -50,6 +77,191 @@ export async function handleRequest(req: Request): Promise<Response> {
 			status: 204,
 			headers: corsHeaders
 		});
+	}
+
+	// -------------------------------------------------------------
+	// AUTHENTICATION ROUTES (Phase 2)
+	// -------------------------------------------------------------
+
+	// POST /api/auth/register
+	if (req.method === 'POST' && pathname === '/api/auth/register') {
+		const origin = req.headers.get('origin');
+		if (!isOriginAllowed(origin)) {
+			return jsonResponse({ error: 'Forbidden: origin not allowed or missing' }, 403);
+		}
+
+		// Rate limiting: max 10 registrations per minute per IP
+		const clientIp = req.headers.get('x-forwarded-for') || 'local';
+		const rateCheck = checkRateLimit(`register:${clientIp}`, { maxRequests: 10, windowMs: 60 * 1000 });
+		if (!rateCheck.allowed) {
+			return jsonResponse({ error: 'Too many registration requests. Please try again later.' }, 429);
+		}
+
+		let body: Record<string, unknown>;
+		try {
+			body = (await req.json()) as Record<string, unknown>;
+		} catch {
+			return jsonResponse({ error: 'Invalid JSON body' }, 400);
+		}
+
+		if (!body || typeof body !== 'object' || Array.isArray(body)) {
+			return jsonResponse({ error: 'Request body must be an object' }, 400);
+		}
+
+		// Strict field validation: allow only 'email' and 'password'
+		const allowedKeys = new Set(['email', 'password']);
+		const bodyKeys = Object.keys(body);
+		const unknownKeys = bodyKeys.filter((k) => !allowedKeys.has(k));
+		if (unknownKeys.length > 0) {
+			return jsonResponse(
+				{ error: `Prohibited or unknown field(s) in registration request: ${unknownKeys.join(', ')}` },
+				400
+			);
+		}
+
+		const { email, password } = body;
+		if (!isValidEmail(email)) {
+			return jsonResponse({ error: 'Invalid email address' }, 400);
+		}
+
+		if (!isValidPassword(password)) {
+			return jsonResponse({ error: 'Password must be between 8 and 128 characters' }, 400);
+		}
+
+		// Check duplicate email
+		const existingUser = await db
+			.select({ id: users.id })
+			.from(users)
+			.where(eq(users.email, email.trim().toLowerCase()))
+			.limit(1);
+
+		if (existingUser.length > 0) {
+			return jsonResponse({ error: 'An account with this email already exists' }, 409);
+		}
+
+		try {
+			const passwordHash = await hashPassword(password);
+			const [newUser] = await db
+				.insert(users)
+				.values({
+					email: email.trim().toLowerCase(),
+					passwordHash,
+					role: 'user', // Always assigned server-side
+					isActive: true
+				})
+				.returning({
+					id: users.id,
+					email: users.email,
+					role: users.role,
+					isActive: users.isActive,
+					createdAt: users.createdAt
+				});
+
+			return jsonResponse(newUser, 201);
+		} catch (error) {
+			console.error('Registration database error:', error);
+			return jsonResponse({ error: 'Failed to register account' }, 500);
+		}
+	}
+
+	// POST /api/auth/login
+	if (req.method === 'POST' && pathname === '/api/auth/login') {
+		const origin = req.headers.get('origin');
+		if (!isOriginAllowed(origin)) {
+			return jsonResponse({ error: 'Forbidden: origin not allowed or missing' }, 403);
+		}
+
+		// Rate limiting: max 15 login attempts per minute per IP
+		const clientIp = req.headers.get('x-forwarded-for') || 'local';
+		const rateCheck = checkRateLimit(`login:${clientIp}`, { maxRequests: 15, windowMs: 60 * 1000 });
+		if (!rateCheck.allowed) {
+			return jsonResponse({ error: 'Too many login attempts. Please try again later.' }, 429);
+		}
+
+		let body: Record<string, unknown>;
+		try {
+			body = (await req.json()) as Record<string, unknown>;
+		} catch {
+			return jsonResponse({ error: 'Invalid JSON body' }, 400);
+		}
+
+		const { email, password } = body;
+		if (!email || !password || typeof email !== 'string' || typeof password !== 'string') {
+			return jsonResponse({ error: 'Email and password are required' }, 400);
+		}
+
+		// Look up user
+		const matchingUsers = await db
+			.select()
+			.from(users)
+			.where(eq(users.email, email.trim().toLowerCase()))
+			.limit(1);
+
+		// If user does not exist, verify against pre-computed dummy hash to equalize timing
+		if (matchingUsers.length === 0) {
+			await passwordVerifier(password, DUMMY_ARGON2ID_HASH);
+			return jsonResponse({ error: 'Invalid email or password' }, 401);
+		}
+
+		const foundUser = matchingUsers[0];
+
+		// Always verify password against stored hash first
+		const isPasswordValid = await passwordVerifier(password, foundUser.passwordHash);
+
+		// Reject if password is invalid OR if account is inactive
+		// Returning the identical generic error to prevent enumeration of account status
+		if (!isPasswordValid || !foundUser.isActive) {
+			return jsonResponse({ error: 'Invalid email or password' }, 401);
+		}
+
+		try {
+			// Create session and set cookie
+			const { rawToken } = await createSession(foundUser.id);
+			const cookieHeader = buildSessionCookie(rawToken);
+
+			return jsonResponse(
+				{
+					user: {
+						id: foundUser.id,
+						email: foundUser.email,
+						role: foundUser.role,
+						isActive: foundUser.isActive,
+						createdAt: foundUser.createdAt
+					}
+				},
+				200,
+				{ 'Set-Cookie': cookieHeader }
+			);
+		} catch (error) {
+			console.error('Login session creation error:', error);
+			return jsonResponse({ error: 'Failed to process login' }, 500);
+		}
+	}
+
+	// POST /api/auth/logout
+	if (req.method === 'POST' && pathname === '/api/auth/logout') {
+		const cookieHeader = req.headers.get('cookie');
+		const cookies = parseCookies(cookieHeader);
+		const rawToken = cookies[SESSION_COOKIE_NAME];
+
+		if (rawToken) {
+			await revokeSessionByRawToken(rawToken);
+		}
+
+		const clearCookie = buildClearSessionCookie();
+		return jsonResponse({ message: 'Logged out successfully' }, 200, {
+			'Set-Cookie': clearCookie
+		});
+	}
+
+	// GET /api/auth/me
+	if (req.method === 'GET' && pathname === '/api/auth/me') {
+		const auth = await authenticateRequest(req);
+		if (!auth.success) {
+			return jsonResponse({ error: auth.error }, auth.status);
+		}
+
+		return jsonResponse({ user: auth.context.user }, 200);
 	}
 
 	// POST /api/transcripts
