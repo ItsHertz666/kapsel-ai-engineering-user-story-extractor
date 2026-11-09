@@ -5,7 +5,8 @@ import {
 	userStories,
 	acceptanceCriteria,
 	extractionRuns,
-	extractionAttempts
+	extractionAttempts,
+	users
 } from '../src/db/schema';
 import { handleRequest } from '../src/index';
 import {
@@ -18,11 +19,24 @@ import { eq, and, desc } from 'drizzle-orm';
 
 describe('Token Usage Tracking & Extraction Runs Architecture', () => {
 	let testTranscriptId: number;
+	let testUserId: string;
 
 	beforeAll(async () => {
+		const [u] = await db
+			.insert(users)
+			.values({
+				email: 'token_usage_test_user@example.com',
+				passwordHash: 'hash',
+				role: 'user',
+				isActive: true
+			})
+			.returning({ id: users.id });
+		testUserId = u.id;
+
 		const [t] = await db
 			.insert(transcripts)
 			.values({
+				userId: testUserId,
 				rawText: 'Rapat sistem absensi karyawan. Karyawan ingin scan QR untuk presensi harian.',
 				originalFilename: 'test-token-usage.txt',
 				status: 'queued'
@@ -34,6 +48,9 @@ describe('Token Usage Tracking & Extraction Runs Architecture', () => {
 	afterAll(async () => {
 		if (testTranscriptId) {
 			await db.delete(transcripts).where(eq(transcripts.id, testTranscriptId));
+		}
+		if (testUserId) {
+			await db.delete(users).where(eq(users.id, testUserId));
 		}
 	});
 

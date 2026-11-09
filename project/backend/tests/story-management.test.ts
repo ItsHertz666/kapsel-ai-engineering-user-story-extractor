@@ -1,18 +1,32 @@
 import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
 import { db } from '../src/db';
-import { transcripts, userStories, acceptanceCriteria } from '../src/db/schema';
+import { transcripts, userStories, acceptanceCriteria, users } from '../src/db/schema';
 import { handleRequest } from '../src/index';
 import { eq } from 'drizzle-orm';
 
 describe('HITL Story Management API', () => {
 	let testTranscriptId: number;
 	let testStoryId: number;
+	let testUserId: string;
 
 	beforeAll(async () => {
-		// Create a test transcript
+		// Ensure a test user exists for foreign key constraint
+		const [u] = await db
+			.insert(users)
+			.values({
+				email: 'hitl_test_user@example.com',
+				passwordHash: 'hash',
+				role: 'user',
+				isActive: true
+			})
+			.returning({ id: users.id });
+		testUserId = u.id;
+
+		// Create a test transcript linked to testUserId
 		const [t] = await db
 			.insert(transcripts)
 			.values({
+				userId: testUserId,
 				rawText: 'Percakapan simulasi rapat untuk pengujian HITL story management.',
 				originalFilename: 'test-hitl.txt',
 				status: 'completed'
@@ -49,6 +63,9 @@ describe('HITL Story Management API', () => {
 		// Clean up created records (cascade delete on transcripts removes stories and AC)
 		if (testTranscriptId) {
 			await db.delete(transcripts).where(eq(transcripts.id, testTranscriptId));
+		}
+		if (testUserId) {
+			await db.delete(users).where(eq(users.id, testUserId));
 		}
 	});
 
